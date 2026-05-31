@@ -878,7 +878,7 @@ a {
   font-size: 13px;
 }
 
-.student-tip {
+.student-thinking {
   margin-top: 14px;
   padding: 13px 14px;
   border-radius: 8px;
@@ -888,7 +888,7 @@ a {
   line-height: 1.6;
 }
 
-.student-tip strong {
+.student-thinking strong {
   color: var(--brand);
 }
 

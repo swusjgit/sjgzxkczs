@@ -409,7 +409,7 @@ function renderAiNewsPage() {
       <section class="section-title">
         <div>
           <h1>每周 AI 新闻</h1>
-          <p>每周汇总适合初中生阅读和讨论的 AI 动态，保留来源链接、学生提示和主题标签。</p>
+          <p>每周汇总适合初中生阅读和讨论的 AI 动态，保留来源链接、思考问题和主题标签。</p>
         </div>
       </section>
       ${
@@ -423,7 +423,7 @@ function renderAiNewsPage() {
         </div>
         <ul class="guide-list" style="padding: 0 26px 26px;">
           <li><span>1</span><div>每周检索过去 7 天 AI 新闻，优先选择教育应用、生成式 AI、AI 安全与伦理、重要模型与工具动态。</div></li>
-          <li><span>2</span><div>写入 <code>data/ai-news.json</code>，每条包含标题、日期、来源、链接、摘要、学生提示和标签。</div></li>
+          <li><span>2</span><div>写入 <code>data/ai-news.json</code>，每条包含标题、日期、来源、链接、摘要、思考问题和标签。</div></li>
           <li><span>3</span><div>将最重要的一条标记为 <code>featured: true</code>，首页会自动展示。</div></li>
         </ul>
       </section>
@@ -436,7 +436,7 @@ function renderNewsCard(item) {
     <article class="news-card ${item.featured ? "featured" : ""}">
       <h3>${escapeHtml(item.title)}</h3>
       <p>${escapeHtml(item.summary)}</p>
-      <div class="student-tip"><strong>提示：</strong>${escapeHtml(item.studentTip || "待补充")}</div>
+      <div class="student-thinking"><strong>思考：</strong>${escapeHtml(item.studentThinking || "待补充")}</div>
       <div class="news-source">
         ${formatDate(item.date)} · ${escapeHtml(item.source || "来源待补充")}
       </div>
@@ -452,7 +452,7 @@ function renderAiNewsEmpty() {
       <div class="empty-visual" aria-hidden="true">
         <div class="folder-stack">
           <div class="folder-row">搜索新闻</div>
-          <div class="folder-row">整理学生提示</div>
+          <div class="folder-row">整理思考问题</div>
           <div class="folder-row">同步首页精选</div>
         </div>
       </div>
