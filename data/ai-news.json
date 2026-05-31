@@ -1,0 +1,120 @@
+{
+  "generatedAt": "2026-05-31T23:15:00+08:00",
+  "featuredId": "people-cctv-ai-thinking-2026-05-31",
+  "items": [
+    {
+      "id": "people-cctv-ai-thinking-2026-05-31",
+      "title": "AI 浪潮下，如何培养青少年的思维能力？",
+      "date": "2026-05-31",
+      "source": "央视网 / 人民日报",
+      "sourceUrl": "https://news.cctv.com/2026/05/31/ARTI91hYXAv8Om5qBDNYvioW260531.shtml",
+      "links": [
+        {
+          "label": "央视网",
+          "url": "https://news.cctv.com/2026/05/31/ARTI91hYXAv8Om5qBDNYvioW260531.shtml"
+        },
+        {
+          "label": "人民网",
+          "url": "https://edu.people.com.cn/n1/2026/0531/c1006-40730751.html"
+        },
+        {
+          "label": "中国日报网",
+          "url": "https://cn.chinadaily.com.cn/a/202605/31/WS6a1ba4a5a310942cc49af294.html"
+        }
+      ],
+      "summary": "报道聚焦 AI 时代如何培养青少年的批判性思维、提问能力和独立判断能力，强调 AI 应成为思维脚手架而不是替代思考的拐杖。",
+      "classroomAngle": "可作为课堂导入：让学生讨论“哪些任务可以交给 AI，哪些思考必须自己完成”。",
+      "tags": ["国内媒体", "青少年", "AI 素养"],
+      "featured": true
+    },
+    {
+      "id": "xinhua-world-digital-education-2026-05-13",
+      "title": "2026 世界数字教育大会展示 AI 教育新样态",
+      "date": "2026-05-13",
+      "source": "新华社 / 央视网",
+      "sourceUrl": "https://www.news.cn/20260513/8250dbf5a01643c1bbe7cc3bba5459ea/c.html",
+      "links": [
+        {
+          "label": "新华网",
+          "url": "https://www.news.cn/20260513/8250dbf5a01643c1bbe7cc3bba5459ea/c.html"
+        },
+        {
+          "label": "央视网",
+          "url": "https://news.cctv.com/2026/05/13/ARTIz98JGvOVp8B327VI1gLg260513.shtml"
+        }
+      ],
+      "summary": "世界数字教育大会集中展示 AI 赋能课堂、学生成长数据、智能体学习助手等场景，呈现教育数字化的真实应用。",
+      "classroomAngle": "适合带学生辨析：AI 进课堂时，哪些场景是在帮助学习，哪些场景需要注意隐私和依赖问题。",
+      "tags": ["国内媒体", "数字教育", "课堂应用"],
+      "featured": false
+    },
+    {
+      "id": "cyberspace-ai-literacy-framework-2026-05-20",
+      "title": "全民人工智能素养参考框架发布",
+      "date": "2026-05-20",
+      "source": "央视网 / 中国网信网",
+      "sourceUrl": "https://gongyi.cctv.com/2026/05/20/ARTIKayWvxNV0ZVkffbrYgRv260520.shtml",
+      "links": [
+        {
+          "label": "央视网",
+          "url": "https://gongyi.cctv.com/2026/05/20/ARTIKayWvxNV0ZVkffbrYgRv260520.shtml"
+        }
+      ],
+      "summary": "全民数字素养与技能提升论坛发布人工智能素养相关报告和参考框架，关注通识教育、师生数字素养和智能鸿沟。",
+      "classroomAngle": "可引出“AI 素养”不只是会使用工具，还包括理解原理、辨别信息、保护隐私和负责任地使用。",
+      "tags": ["国内媒体", "AI 素养", "数字公民"],
+      "featured": false
+    },
+    {
+      "id": "cac-ai-safety-barrier-2026-05-12",
+      "title": "合力共筑人工智能安全屏障",
+      "date": "2026-05-12",
+      "source": "中央网信办 / 经济日报",
+      "sourceUrl": "https://www.cac.gov.cn/2026-05/12/c_1780328264756091.htm",
+      "links": [
+        {
+          "label": "中央网信办",
+          "url": "https://www.cac.gov.cn/2026-05/12/c_1780328264756091.htm"
+        }
+      ],
+      "summary": "文章梳理我国在生成式 AI、算法推荐和深度合成等领域的治理实践，强调发展 AI 的同时要守住安全底线。",
+      "classroomAngle": "适合网络安全和 AI 伦理主题：为什么 AI 生成内容需要标识？算法推荐为什么需要规则？",
+      "tags": ["国内媒体", "AI 安全", "伦理治理"],
+      "featured": false
+    },
+    {
+      "id": "xinhua-smart-industry-expo-2026-05-28",
+      "title": "世界智能产业博览会展示 AI 场景落地",
+      "date": "2026-05-28",
+      "source": "新华社",
+      "sourceUrl": "https://www.news.cn/tech/20260528/48e3bd182f4c4e24aeb7696b62c53c93/c.html",
+      "links": [
+        {
+          "label": "新华网",
+          "url": "https://www.news.cn/tech/20260528/48e3bd182f4c4e24aeb7696b62c53c93/c.html"
+        }
+      ],
+      "summary": "2026 世界智能产业博览会集中展示人工智能核心技术、具身智能、智能网联车、低空经济和智慧生活等应用场景。",
+      "classroomAngle": "可让学生找一类身边的 AI 应用，分析它需要哪些数据、算法和算力支持。",
+      "tags": ["国内媒体", "产业应用", "AI 三要素"],
+      "featured": false
+    },
+    {
+      "id": "openai-frontier-governance-2026-05-28",
+      "title": "OpenAI 发布前沿模型治理框架",
+      "date": "2026-05-28",
+      "source": "OpenAI",
+      "sourceUrl": "https://openai.com/index/openai-frontier-governance-framework/",
+      "links": [
+        {
+          "label": "OpenAI 官网",
+          "url": "https://openai.com/index/openai-frontier-governance-framework/"
+        }
+      ],
+      "summary": "OpenAI 用治理框架说明如何评估和管理更强 AI 模型的风险，强调安全、评测和责任分工。",
+      "classroomAngle": "适合与国内 AI 治理新闻对照，讨论强大模型为什么需要规则和测试。",
+      "tags": ["国际动态", "模型治理", "AI 安全"],
+      "featured": false
+    }
+  ]
+}

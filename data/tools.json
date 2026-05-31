@@ -1,0 +1,54 @@
+{
+  "tools": [
+    {
+      "id": "decision-tree-builder",
+      "title": "决策树绘制工具",
+      "description": "用于绘制分类判断、算法分支、AI 决策过程等结构图，适合课堂讲解和学生任务表达。",
+      "href": "素材/决策树/decision-tree-builder.html",
+      "cta": "开始绘制",
+      "icon": "tree",
+      "tags": ["决策树", "算法思维", "AI 入门"],
+      "featured": true
+    },
+    {
+      "id": "eight-puzzle",
+      "title": "八数码拼图",
+      "description": "通过移动拼图体验状态空间问题，为后续搜索算法、启发式搜索做铺垫。",
+      "href": "素材/启发式搜索/8puzzle_simple.html",
+      "cta": "打开工具",
+      "icon": "puzzle",
+      "tags": ["状态空间", "启发式搜索", "游戏化学习"],
+      "statusLabel": "可使用"
+    },
+    {
+      "id": "eight-puzzle-search-tree",
+      "title": "八数码搜索树",
+      "description": "观察搜索树展开过程，帮助学生理解节点、路径、目标状态和搜索策略。",
+      "href": "素材/启发式搜索/8puzzle_search_tree.html",
+      "cta": "打开工具",
+      "icon": "search",
+      "tags": ["搜索树", "路径", "算法可视化"],
+      "statusLabel": "可使用"
+    },
+    {
+      "id": "tictactoe",
+      "title": "井字棋基础版",
+      "description": "用简单对弈场景理解规则建模、状态判断和程序交互。",
+      "href": "素材/启发式搜索/tictactoe.html",
+      "cta": "开始体验",
+      "icon": "game",
+      "tags": ["规则建模", "交互程序", "小游戏"],
+      "statusLabel": "可使用"
+    },
+    {
+      "id": "tictactoe-ai",
+      "title": "井字棋 AI 对战",
+      "description": "在可玩的对弈中感受 AI 策略选择，可用于引出搜索、博弈和评价函数。",
+      "href": "素材/启发式搜索/tictactoe_ai.html",
+      "cta": "挑战 AI",
+      "icon": "game",
+      "tags": ["AI 对战", "博弈", "策略"],
+      "statusLabel": "可使用"
+    }
+  ]
+}

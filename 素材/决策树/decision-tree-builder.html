@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>决策树绘制工具</title>
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #d6dde8;
+      --green: #2f7d5b;
+      --green-soft: #e4f5ec;
+      --blue: #326bff;
+      --blue-soft: #eaf1ff;
+      --amber: #f2ad2e;
+      --rose: #e85d75;
+      --shadow: 0 12px 30px rgba(31, 41, 55, 0.10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      overflow-x: auto;
+      z-index: 5;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 220px;
+      margin-right: 6px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: var(--green);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    button, select {
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex: 0 0 auto;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    button:hover {
+      border-color: #aab7ca;
+      transform: translateY(-1px);
+    }
+
+    button.primary {
+      border-color: var(--green);
+      background: var(--green);
+      color: white;
+    }
+
+    button.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    button.danger {
+      color: #b42318;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .workspace {
+      position: relative;
+      overflow: hidden;
+      cursor: grab;
+      background:
+        linear-gradient(rgba(47, 125, 91, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(47, 125, 91, 0.045) 1px, transparent 1px),
+        var(--bg);
+      background-size: 24px 24px;
+    }
+
+    .workspace.panning {
+      cursor: grabbing;
+    }
+
+    .scene {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2400px;
+      height: 1600px;
+      transform-origin: 0 0;
+    }
+
+    #canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .node {
+      position: absolute;
+      min-width: 132px;
+      max-width: 240px;
+      min-height: 54px;
+      padding: 12px 16px;
+      border: 2px solid var(--green);
+      border-radius: 8px;
+      background: white;
+      box-shadow: var(--shadow);
+      cursor: grab;
+      user-select: none;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      font-weight: 800;
+      line-height: 1.25;
+      z-index: 2;
+    }
+
+    .node.leaf {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .node.decision {
+      background: var(--green-soft);
+    }
+
+    .node.selected {
+      outline: 4px solid rgba(50, 107, 255, 0.22);
+      border-color: var(--blue);
+    }
+
+    .node.connect-source {
+      outline: 4px solid rgba(242, 173, 46, 0.35);
+      border-color: var(--amber);
+    }
+
+    .node:active {
+      cursor: grabbing;
+    }
+
+    .edge-path {
+      fill: none;
+      stroke: #526173;
+      stroke-width: 2.2;
+      marker-end: url(#arrow);
+      cursor: pointer;
+    }
+
+    .edge-path.selected {
+      stroke: var(--blue);
+      stroke-width: 3.2;
+    }
+
+    .edge-label-bg {
+      fill: white;
+      stroke: var(--line);
+      stroke-width: 1;
+      rx: 6;
+    }
+
+    .edge-label {
+      font-size: 14px;
+      font-weight: 700;
+      fill: var(--ink);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .floating-editor {
+      position: absolute;
+      z-index: 10;
+      display: none;
+      min-width: 180px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      box-shadow: var(--shadow);
+    }
+
+    .floating-editor input {
+      width: 100%;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 10px;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .floating-editor input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(50, 107, 255, 0.14);
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: white;
+      background: rgba(31, 41, 55, 0.88);
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease;
+      z-index: 20;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    @media (max-width: 760px) {
+      .toolbar {
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        min-width: 100%;
+      }
+
+      .hint {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="toolbar">
+      <div class="brand">
+        <div class="brand-mark">树</div>
+        <div>决策树绘制工具</div>
+      </div>
+      <button class="primary" id="addDecision">＋ 判断节点</button>
+      <button id="addLeaf">＋ 结果节点</button>
+      <button id="connectMode">↗ 连线</button>
+      <button id="editSelected">✎ 编辑</button>
+      <button class="danger" id="deleteSelected">⌫ 删除</button>
+      <button id="exportPng">⇩ 导出图片</button>
+      <button id="resetDemo">↺ 示例</button>
+      <button id="centerView">⌖ 视图居中</button>
+      <div class="spacer"></div>
+      <div class="hint" id="hint">拖动画布空白处可移动视图；双击节点或线条文字可编辑。</div>
+    </header>
+
+    <main class="workspace" id="workspace">
+      <div class="scene" id="scene">
+        <svg id="canvas" aria-label="决策树画布">
+          <defs>
+            <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+              <path d="M2,2 L10,6 L2,10 Z" fill="#526173"></path>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+      <div class="floating-editor" id="editor">
+        <input id="editorInput" autocomplete="off" />
+      </div>
+      <div class="toast" id="toast"></div>
+    </main>
+  </div>
+
+  <script>
+    const workspace = document.getElementById("workspace");
+    const scene = document.getElementById("scene");
+    const svg = document.getElementById("canvas");
+    const editor = document.getElementById("editor");
+    const editorInput = document.getElementById("editorInput");
+    const toast = document.getElementById("toast");
+    const WORLD_WIDTH = 2400;
+    const WORLD_HEIGHT = 1600;
+
+    const state = {
+      nodes: [],
+      edges: [],
+      selected: null,
+      connectMode: false,
+      connectSource: null,
+      dragging: null,
+      panning: null,
+      panX: 0,
+      panY: 0,
+      editing: null,
+      nextNodeId: 1,
+      nextEdgeId: 1,
+    };
+
+    function seedDemo() {
+      state.nodes = [];
+      state.edges = [];
+      state.selected = null;
+      state.connectSource = null;
+      state.nextNodeId = 1;
+      state.nextEdgeId = 1;
+      centerView();
+
+      const root = addNode("有羽毛吗？", 520, 72, "decision");
+      const bird = addNode("鸟类", 250, 225, "leaf");
+      const water = addNode("生活在水中吗？", 650, 225, "decision");
+      const fish = addNode("鱼类", 525, 405, "leaf");
+      const milk = addNode("会吃奶吗？", 805, 405, "decision");
+      const mammal = addNode("哺乳动物", 670, 585, "leaf");
+      const other = addNode("其他动物", 950, 585, "leaf");
+
+      addEdge(root.id, bird.id, "是");
+      addEdge(root.id, water.id, "否");
+      addEdge(water.id, fish.id, "是");
+      addEdge(water.id, milk.id, "否");
+      addEdge(milk.id, mammal.id, "是");
+      addEdge(milk.id, other.id, "否");
+      render();
+    }
+
+    function addNode(text, x, y, type) {
+      const node = { id: `n${state.nextNodeId++}`, text, x, y, type, w: 150, h: 64 };
+      state.nodes.push(node);
+      render();
+      return node;
+    }
+
+    function addEdge(from, to, label = "条件") {
+      if (from === to) {
+        showToast("不能把节点连到自己。");
+        return null;
+      }
+      const exists = state.edges.some(edge => edge.from === from && edge.to === to);
+      if (exists) {
+        showToast("这两个节点已经有一条线了。");
+        return null;
+      }
+      const edge = { id: `e${state.nextEdgeId++}`, from, to, label };
+      state.edges.push(edge);
+      return edge;
+    }
+
+    function nodeById(id) {
+      return state.nodes.find(node => node.id === id);
+    }
+
+    function clearSelection() {
+      state.selected = null;
+      state.connectSource = null;
+      render();
+    }
+
+    function select(kind, id) {
+      state.selected = { kind, id };
+      render();
+    }
+
+    function render() {
+      document.querySelectorAll(".node").forEach(node => node.remove());
+      Array.from(svg.querySelectorAll(".edge")).forEach(edge => edge.remove());
+      applyPan();
+
+      state.edges.forEach(renderEdge);
+      state.nodes.forEach(renderNode);
+      document.getElementById("connectMode").classList.toggle("active", state.connectMode);
+      updateHint();
+    }
+
+    function renderNode(node) {
+      const el = document.createElement("div");
+      el.className = `node ${node.type}`;
+      if (state.selected?.kind === "node" && state.selected.id === node.id) el.classList.add("selected");
+      if (state.connectSource === node.id) el.classList.add("connect-source");
+      el.style.left = `${node.x}px`;
+      el.style.top = `${node.y}px`;
+      el.textContent = node.text;
+      el.dataset.id = node.id;
+      scene.appendChild(el);
+
+      requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect();
+        node.w = rect.width;
+        node.h = rect.height;
+      });
+
+      el.addEventListener("pointerdown", event => {
+        if (state.connectMode) return;
+        event.stopPropagation();
+        select("node", node.id);
+        state.dragging = {
+          id: node.id,
+          startX: event.clientX,
+          startY: event.clientY,
+          nodeX: node.x,
+          nodeY: node.y,
+        };
+        el.setPointerCapture(event.pointerId);
+      });
+
+      el.addEventListener("pointermove", event => {
+        if (!state.dragging || state.dragging.id !== node.id) return;
+        const dx = event.clientX - state.dragging.startX;
+        const dy = event.clientY - state.dragging.startY;
+        node.x = clamp(state.dragging.nodeX + dx, 12, WORLD_WIDTH - node.w - 12);
+        node.y = clamp(state.dragging.nodeY + dy, 12, WORLD_HEIGHT - node.h - 12);
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+        redrawEdges();
+      });
+
+      el.addEventListener("pointerup", () => {
+        state.dragging = null;
+      });
+
+      el.addEventListener("click", event => {
+        event.stopPropagation();
+        if (!state.connectMode) {
+          select("node", node.id);
+          return;
+        }
+        if (!state.connectSource) {
+          state.connectSource = node.id;
+          render();
+          return;
+        }
+        const newEdge = addEdge(state.connectSource, node.id, "条件");
+        state.connectSource = null;
+        state.connectMode = false;
+        if (newEdge) select("edge", newEdge.id);
+        render();
+        if (newEdge) openEditor("edge", newEdge.id);
+      });
+
+      el.addEventListener("dblclick", event => {
+        event.stopPropagation();
+        openEditor("node", node.id);
+      });
+    }
+
+    function renderEdge(edge) {
+      const from = nodeById(edge.from);
+      const to = nodeById(edge.to);
+      if (!from || !to) return;
+
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      group.classList.add("edge");
+      group.dataset.id = edge.id;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.classList.add("edge-path");
+      if (state.selected?.kind === "edge" && state.selected.id === edge.id) path.classList.add("selected");
+      path.setAttribute("d", pathFor(from, to));
+
+      const mid = midPoint(from, to);
+      const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      bg.classList.add("edge-label-bg");
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.classList.add("edge-label");
+      text.textContent = edge.label || "条件";
+      text.setAttribute("x", mid.x);
+      text.setAttribute("y", mid.y - 8);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "middle");
+
+      group.append(path, bg, text);
+      svg.appendChild(group);
+      positionLabelBg(bg, text);
+
+      group.addEventListener("click", event => {
+        event.stopPropagation();
+        select("edge", edge.id);
+      });
+      group.addEventListener("dblclick", event => {
+        event.stopPropagation();
+        openEditor("edge", edge.id);
+      });
+    }
+
+    function redrawEdges() {
+      state.edges.forEach(edge => {
+        const group = svg.querySelector(`.edge[data-id="${edge.id}"]`);
+        const from = nodeById(edge.from);
+        const to = nodeById(edge.to);
+        if (!group || !from || !to) return;
+        const path = group.querySelector(".edge-path");
+        const text = group.querySelector(".edge-label");
+        const bg = group.querySelector(".edge-label-bg");
+        const mid = midPoint(from, to);
+        path.setAttribute("d", pathFor(from, to));
+        text.setAttribute("x", mid.x);
+        text.setAttribute("y", mid.y - 8);
+        positionLabelBg(bg, text);
+      });
+    }
+
+    function center(node) {
+      return { x: node.x + node.w / 2, y: node.y + node.h / 2 };
+    }
+
+    function anchor(from, to) {
+      const a = center(from);
+      const b = center(to);
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      if (Math.abs(dx) / Math.max(1, from.w) > Math.abs(dy) / Math.max(1, from.h)) {
+        return {
+          from: { x: a.x + Math.sign(dx) * from.w / 2, y: a.y },
+          to: { x: b.x - Math.sign(dx) * to.w / 2, y: b.y },
+        };
+      }
+      return {
+        from: { x: a.x, y: a.y + Math.sign(dy) * from.h / 2 },
+        to: { x: b.x, y: b.y - Math.sign(dy) * to.h / 2 },
+      };
+    }
+
+    function pathFor(from, to) {
+      const p = anchor(from, to);
+      const curve = Math.max(38, Math.abs(p.to.y - p.from.y) * 0.45);
+      return `M ${p.from.x} ${p.from.y} C ${p.from.x} ${p.from.y + curve}, ${p.to.x} ${p.to.y - curve}, ${p.to.x} ${p.to.y}`;
+    }
+
+    function midPoint(from, to) {
+      const p = anchor(from, to);
+      return { x: (p.from.x + p.to.x) / 2, y: (p.from.y + p.to.y) / 2 };
+    }
+
+    function positionLabelBg(bg, text) {
+      requestAnimationFrame(() => {
+        const box = text.getBBox();
+        bg.setAttribute("x", box.x - 9);
+        bg.setAttribute("y", box.y - 5);
+        bg.setAttribute("width", box.width + 18);
+        bg.setAttribute("height", box.height + 10);
+      });
+    }
+
+    function openEditor(kind, id) {
+      const item = kind === "node" ? nodeById(id) : state.edges.find(edge => edge.id === id);
+      if (!item) return;
+      state.editing = { kind, id };
+      select(kind, id);
+      editorInput.value = kind === "node" ? item.text : item.label;
+      const pos = editorPosition(kind, id);
+      editor.style.left = `${pos.x}px`;
+      editor.style.top = `${pos.y}px`;
+      editor.style.display = "block";
+      editorInput.focus();
+      editorInput.select();
+    }
+
+    function editorPosition(kind, id) {
+      if (kind === "node") {
+        const node = nodeById(id);
+        return {
+          x: clamp(node.x + state.panX + 8, 8, workspace.clientWidth - 210),
+          y: clamp(node.y + node.h + state.panY + 8, 8, workspace.clientHeight - 58),
+        };
+      }
+      const edge = state.edges.find(e => e.id === id);
+      const from = nodeById(edge.from);
+      const to = nodeById(edge.to);
+      const mid = midPoint(from, to);
+      return {
+        x: clamp(mid.x + state.panX - 90, 8, workspace.clientWidth - 210),
+        y: clamp(mid.y + state.panY + 8, 8, workspace.clientHeight - 58),
+      };
+    }
+
+    function commitEditor() {
+      if (!state.editing) return;
+      const value = editorInput.value.trim() || "未命名";
+      if (state.editing.kind === "node") {
+        const node = nodeById(state.editing.id);
+        if (node) node.text = value;
+      } else {
+        const edge = state.edges.find(item => item.id === state.editing.id);
+        if (edge) edge.label = value;
+      }
+      closeEditor();
+      render();
+    }
+
+    function closeEditor() {
+      state.editing = null;
+      editor.style.display = "none";
+    }
+
+    function deleteSelected() {
+      if (!state.selected) return;
+      if (state.selected.kind === "node") {
+        const id = state.selected.id;
+        state.nodes = state.nodes.filter(node => node.id !== id);
+        state.edges = state.edges.filter(edge => edge.from !== id && edge.to !== id);
+      } else {
+        state.edges = state.edges.filter(edge => edge.id !== state.selected.id);
+      }
+      state.selected = null;
+      closeEditor();
+      render();
+    }
+
+    async function exportPng() {
+      closeEditor();
+      clearSelection();
+      await nextFrame();
+      await nextFrame();
+
+      if (!state.nodes.length) {
+        showToast("画布上还没有节点。");
+        return;
+      }
+
+      const bounds = getTreeBounds(96);
+      const scale = 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(bounds.w * scale);
+      canvas.height = Math.ceil(bounds.h * scale);
+      const ctx = canvas.getContext("2d");
+      ctx.scale(scale, scale);
+      ctx.translate(-bounds.x, -bounds.y);
+
+      drawExportBackground(ctx, bounds);
+      state.edges.forEach(edge => drawExportEdge(ctx, edge));
+      state.nodes.forEach(node => drawExportNode(ctx, node));
+
+      canvas.toBlob(blob => {
+        if (!blob) {
+          showToast("导出失败，请稍后再试。");
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = "decision-tree.png";
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast("图片已导出。");
+      }, "image/png");
+    }
+
+    function nextFrame() {
+      return new Promise(resolve => requestAnimationFrame(resolve));
+    }
+
+    function getTreeBounds(padding) {
+      const xs = [];
+      const ys = [];
+      state.nodes.forEach(node => {
+        xs.push(node.x, node.x + node.w);
+        ys.push(node.y, node.y + node.h);
+      });
+      state.edges.forEach(edge => {
+        const from = nodeById(edge.from);
+        const to = nodeById(edge.to);
+        if (!from || !to) return;
+        const p = anchor(from, to);
+        const mid = midPoint(from, to);
+        xs.push(p.from.x, p.to.x, mid.x);
+        ys.push(p.from.y, p.to.y, mid.y);
+      });
+      const minX = Math.min(...xs) - padding;
+      const minY = Math.min(...ys) - padding;
+      const maxX = Math.max(...xs) + padding;
+      const maxY = Math.max(...ys) + padding;
+      return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    }
+
+    function drawExportBackground(ctx, bounds) {
+      ctx.fillStyle = "#f7f9fc";
+      ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+      ctx.strokeStyle = "rgba(47, 125, 91, 0.08)";
+      ctx.lineWidth = 1;
+      const grid = 24;
+      const startX = Math.floor(bounds.x / grid) * grid;
+      const startY = Math.floor(bounds.y / grid) * grid;
+      for (let x = startX; x <= bounds.x + bounds.w; x += grid) {
+        ctx.beginPath();
+        ctx.moveTo(x, bounds.y);
+        ctx.lineTo(x, bounds.y + bounds.h);
+        ctx.stroke();
+      }
+      for (let y = startY; y <= bounds.y + bounds.h; y += grid) {
+        ctx.beginPath();
+        ctx.moveTo(bounds.x, y);
+        ctx.lineTo(bounds.x + bounds.w, y);
+        ctx.stroke();
+      }
+    }
+
+    function drawExportEdge(ctx, edge) {
+      const from = nodeById(edge.from);
+      const to = nodeById(edge.to);
+      if (!from || !to) return;
+      const p = anchor(from, to);
+      const curve = Math.max(38, Math.abs(p.to.y - p.from.y) * 0.45);
+      const c1 = { x: p.from.x, y: p.from.y + curve };
+      const c2 = { x: p.to.x, y: p.to.y - curve };
+
+      ctx.save();
+      ctx.strokeStyle = "#526173";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(p.from.x, p.from.y);
+      ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, p.to.x, p.to.y);
+      ctx.stroke();
+      drawArrowHead(ctx, c2, p.to);
+
+      const mid = midPoint(from, to);
+      drawExportEdgeLabel(ctx, edge.label || "条件", mid.x, mid.y - 8);
+      ctx.restore();
+    }
+
+    function drawArrowHead(ctx, control, end) {
+      const angle = Math.atan2(end.y - control.y, end.x - control.x);
+      const length = 13;
+      const wing = 0.55;
+      ctx.save();
+      ctx.fillStyle = "#526173";
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - length * Math.cos(angle - wing), end.y - length * Math.sin(angle - wing));
+      ctx.lineTo(end.x - length * Math.cos(angle + wing), end.y - length * Math.sin(angle + wing));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawExportEdgeLabel(ctx, text, x, y) {
+      ctx.font = "700 14px Microsoft YaHei, PingFang SC, sans-serif";
+      const width = Math.min(Math.max(ctx.measureText(text).width + 18, 34), 360);
+      roundedRect(ctx, x - width / 2, y - 13, width, 26, 6);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.strokeStyle = "#d6dde8";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = "#1f2937";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, x, y, width - 12);
+    }
+
+    function drawExportNode(ctx, node) {
+      const fill = node.type === "leaf" ? "#eaf1ff" : "#e4f5ec";
+      const stroke = node.type === "leaf" ? "#326bff" : "#2f7d5b";
+
+      ctx.save();
+      ctx.shadowColor = "rgba(31, 41, 55, 0.12)";
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetY = 8;
+      roundedRect(ctx, node.x, node.y, node.w, node.h, 8);
+      ctx.fillStyle = fill;
+      ctx.fill();
+      ctx.shadowColor = "transparent";
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.font = "800 16px Microsoft YaHei, PingFang SC, sans-serif";
+      ctx.fillStyle = "#1f2937";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      drawWrappedText(ctx, node.text, node.x + node.w / 2, node.y + node.h / 2, node.w - 28, 21);
+      ctx.restore();
+    }
+
+    function drawWrappedText(ctx, text, centerX, centerY, maxWidth, lineHeight) {
+      const sourceLines = String(text).split("\n");
+      const lines = [];
+      sourceLines.forEach(source => {
+        let current = "";
+        Array.from(source).forEach(char => {
+          const next = current + char;
+          if (current && ctx.measureText(next).width > maxWidth) {
+            lines.push(current);
+            current = char;
+          } else {
+            current = next;
+          }
+        });
+        lines.push(current || " ");
+      });
+      const totalHeight = (lines.length - 1) * lineHeight;
+      lines.forEach((line, index) => {
+        ctx.fillText(line, centerX, centerY - totalHeight / 2 + index * lineHeight, maxWidth);
+      });
+    }
+
+    function roundedRect(ctx, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + w - radius, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+      ctx.lineTo(x + w, y + h - radius);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+      ctx.lineTo(x + radius, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+
+    function updateHint() {
+      const hint = document.getElementById("hint");
+      if (state.connectMode && !state.connectSource) hint.textContent = "连线模式：先点击起点节点。";
+      else if (state.connectMode && state.connectSource) hint.textContent = "连线模式：再点击目标节点，随后可编辑线上的文字。";
+      else hint.textContent = "拖动画布空白处可移动视图；双击节点或线条文字可编辑。";
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function applyPan() {
+      scene.style.transform = `translate(${state.panX}px, ${state.panY}px)`;
+      workspace.style.backgroundPosition = `${state.panX}px ${state.panY}px, ${state.panX}px ${state.panY}px, 0 0`;
+    }
+
+    function centerView() {
+      state.panX = Math.round((workspace.clientWidth - 1280) / 2);
+      state.panY = 8;
+      applyPan();
+      closeEditor();
+    }
+
+    document.getElementById("addDecision").addEventListener("click", () => {
+      const node = addNode("新的判断？", 100 + Math.random() * 120, 90 + Math.random() * 90, "decision");
+      select("node", node.id);
+      openEditor("node", node.id);
+    });
+
+    document.getElementById("addLeaf").addEventListener("click", () => {
+      const node = addNode("结果", 130 + Math.random() * 120, 300 + Math.random() * 90, "leaf");
+      select("node", node.id);
+      openEditor("node", node.id);
+    });
+
+    document.getElementById("connectMode").addEventListener("click", () => {
+      state.connectMode = !state.connectMode;
+      state.connectSource = null;
+      closeEditor();
+      render();
+    });
+
+    document.getElementById("editSelected").addEventListener("click", () => {
+      if (!state.selected) {
+        showToast("请先选择节点或连线。");
+        return;
+      }
+      openEditor(state.selected.kind, state.selected.id);
+    });
+
+    document.getElementById("deleteSelected").addEventListener("click", deleteSelected);
+    document.getElementById("exportPng").addEventListener("click", exportPng);
+    document.getElementById("resetDemo").addEventListener("click", seedDemo);
+    document.getElementById("centerView").addEventListener("click", centerView);
+
+    workspace.addEventListener("pointerdown", event => {
+      if (event.target !== workspace && event.target !== svg) return;
+      closeEditor();
+      state.panning = {
+        startX: event.clientX,
+        startY: event.clientY,
+        panX: state.panX,
+        panY: state.panY,
+      };
+      workspace.classList.add("panning");
+      workspace.setPointerCapture(event.pointerId);
+    });
+
+    workspace.addEventListener("pointermove", event => {
+      if (!state.panning) return;
+      state.panX = state.panning.panX + event.clientX - state.panning.startX;
+      state.panY = state.panning.panY + event.clientY - state.panning.startY;
+      applyPan();
+    });
+
+    workspace.addEventListener("pointerup", () => {
+      state.panning = null;
+      workspace.classList.remove("panning");
+    });
+
+    workspace.addEventListener("pointercancel", () => {
+      state.panning = null;
+      workspace.classList.remove("panning");
+    });
+
+    workspace.addEventListener("click", event => {
+      if (event.target === workspace || event.target === svg) clearSelection();
+    });
+
+    editorInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") commitEditor();
+      if (event.key === "Escape") closeEditor();
+    });
+    editorInput.addEventListener("blur", commitEditor);
+
+    window.addEventListener("keydown", event => {
+      if (event.key === "Delete" || event.key === "Backspace") {
+        if (document.activeElement === editorInput) return;
+        deleteSelected();
+      }
+      if (event.key === "Escape") {
+        state.connectMode = false;
+        state.connectSource = null;
+        closeEditor();
+        render();
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      applyPan();
+      redrawEdges();
+    });
+    seedDemo();
+  </script>
+</body>
+</html>

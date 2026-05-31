@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>井字棋</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 8px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cell:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+        .cell.x {
+            color: #e74c3c;
+        }
+        .cell.o {
+            color: #3498db;
+        }
+        .status {
+            margin-top: 20px;
+            color: white;
+            font-size: 1.5rem;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .reset-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .undo-btn {
+            margin-left: 10px;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .undo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .undo-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>井字棋</h1>
+        <div class="board" id="board"></div>
+        <p class="status" id="status">X 的回合</p>
+        <div class="button-group">
+            <button class="undo-btn" id="undoBtn" onclick="undoMove()" disabled>撤销</button>
+            <button class="reset-btn" onclick="resetGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let gameOver = false;
+        let history = [];
+
+        const boardEl = document.getElementById('board');
+        const statusEl = document.getElementById('status');
+        const undoBtn = document.getElementById('undoBtn');
+
+        function checkWinner() {
+            const lines = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            for (let line of lines) {
+                const [a, b, c] = line;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    return board[a];
+                }
+            }
+            return null;
+        }
+
+        function handleClick(index) {
+            if (board[index] || gameOver) return;
+            history.push({ index, player: currentPlayer });
+            board[index] = currentPlayer;
+            undoBtn.disabled = false;
+            render();
+
+            const winner = checkWinner();
+            if (winner) {
+                statusEl.textContent = `玩家 ${winner} 获胜!`;
+                gameOver = true;
+                undoBtn.disabled = false;
+            } else if (!board.includes('')) {
+                statusEl.textContent = '平局!';
+                gameOver = true;
+                undoBtn.disabled = false;
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                statusEl.textContent = `${currentPlayer} 的回合`;
+            }
+        }
+
+        function render() {
+            boardEl.innerHTML = '';
+            board.forEach((cell, index) => {
+                const cellEl = document.createElement('div');
+                cellEl.className = 'cell' + (cell === 'X' ? ' x' : cell === 'O' ? ' o' : '');
+                cellEl.textContent = cell;
+                cellEl.onclick = () => handleClick(index);
+                boardEl.appendChild(cellEl);
+            });
+        }
+
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameOver = false;
+            history = [];
+            undoBtn.disabled = true;
+            statusEl.textContent = "X 的回合";
+            render();
+        }
+
+        function undoMove() {
+            if (history.length === 0 || gameOver) return;
+            const lastMove = history.pop();
+            board[lastMove.index] = '';
+            currentPlayer = lastMove.player;
+            gameOver = false;
+            undoBtn.disabled = history.length === 0;
+            statusEl.textContent = `${currentPlayer} 的回合`;
+            render();
+        }
+
+        render();
+    </script>
+</body>
+</html>

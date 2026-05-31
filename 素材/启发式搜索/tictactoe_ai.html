@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>井字棋 - AI 对战</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .info {
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        .choose-side {
+            margin-bottom: 20px;
+        }
+        .choose-side p {
+            color: white;
+            margin-bottom: 10px;
+        }
+        .choose-side button {
+            padding: 10px 25px;
+            margin: 0 5px;
+            font-size: 1rem;
+            background: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .choose-side button.x { color: #e74c3c; }
+        .choose-side button.o { color: #3498db; }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cell:hover:not(.taken) {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+        .cell.taken { cursor: not-allowed; }
+        .cell.x { color: #e74c3c; }
+        .cell.o { color: #3498db; }
+        .status {
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            min-height: 30px;
+        }
+        .status.win { color: #00ff88; }
+        .status.lose { color: #ff6b6b; }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        button.common {
+            padding: 10px 25px;
+            font-size: 1rem;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        button.common:hover {
+            transform: translateY(-2px);
+        }
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .score {
+            color: white;
+            font-size: 1rem;
+        }
+        .score span {
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        .score.player span { color: #e74c3c; }
+        .score.ai span { color: #3498db; }
+        .score.draw span { color: #ffaa00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>井字棋 - AI 对战</h1>
+        <p class="info" id="info">选择你扮演 X 还是 O</p>
+
+        <div class="choose-side" id="chooseSide">
+            <button class="x" onclick="startGame('X')">先手 (X)</button>
+            <button class="o" onclick="startGame('O')">后手 (O)</button>
+        </div>
+
+        <div class="board" id="board" style="display:none;"></div>
+        <p class="status" id="status"></p>
+        <div class="btn-group">
+            <button class="common" onclick="resetGame()">重新开始</button>
+        </div>
+
+        <div class="score-board">
+            <div class="score player">你: <span id="playerScore">0</span></div>
+            <div class="score ai">AI: <span id="aiScore">0</span></div>
+            <div class="score draw">平局: <span id="drawScore">0</span></div>
+        </div>
+    </div>
+
+    <script>
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let human = 'X';
+        let ai = 'O';
+        let currentPlayer = 'X';
+        let gameOver = false;
+        let scores = { player: 0, ai: 0, draw: 0 };
+
+        const winLines = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        function startGame(side) {
+            human = side;
+            ai = side === 'X' ? 'O' : 'X';
+            document.getElementById('chooseSide').style.display = 'none';
+            document.getElementById('board').style.display = 'grid';
+            document.getElementById('info').textContent = `你扮演 ${human}，AI 扮演 ${ai}`;
+            renderBoard();
+
+            if (ai === 'X') {
+                setTimeout(aiMove, 500);
+            }
+        }
+
+        function checkWinner(b) {
+            for (const line of winLines) {
+                const [a, c1, c2] = line;
+                if (b[a] && b[a] === b[c1] && b[a] === b[c2]) {
+                    return b[a];
+                }
+            }
+            if (!b.includes('')) return 'DRAW';
+            return null;
+        }
+
+        function minimax(b, depth, isMaximize, alpha, beta) {
+            const winner = checkWinner(b);
+            if (winner === human) return -10 + depth;
+            if (winner === ai) return 10 - depth;
+            if (winner === 'DRAW') return 0;
+
+            const empty = b.map((v, i) => v === '' ? i : -1).filter(i => i !== -1);
+
+            if (isMaximize) {
+                let maxEval = -Infinity;
+                for (const i of empty) {
+                    b[i] = ai;
+                    const score = minimax(b, depth + 1, false, alpha, beta);
+                    b[i] = '';
+                    maxEval = Math.max(maxEval, score);
+                    alpha = Math.max(alpha, score);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (const i of empty) {
+                    b[i] = human;
+                    const score = minimax(b, depth + 1, true, alpha, beta);
+                    b[i] = '';
+                    minEval = Math.min(minEval, score);
+                    beta = Math.min(beta, score);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        function bestMove() {
+            let bestScore = -Infinity;
+            let bestIndex = -1;
+
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === '') {
+                    board[i] = ai;
+                    const score = minimax(board, 0, false, -Infinity, Infinity);
+                    board[i] = '';
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestIndex = i;
+                    }
+                }
+            }
+            return bestIndex;
+        }
+
+        function aiMove() {
+            if (gameOver) return;
+            const move = bestMove();
+            if (move !== -1) {
+                board[move] = ai;
+                renderBoard();
+                checkGameEnd();
+            }
+        }
+
+        function checkGameEnd() {
+            const winner = checkWinner(board);
+            const statusEl = document.getElementById('status');
+
+            if (winner) {
+                gameOver = true;
+                if (winner === human) {
+                    statusEl.textContent = '你赢了!';
+                    statusEl.className = 'status win';
+                    scores.player++;
+                    document.getElementById('playerScore').textContent = scores.player;
+                } else if (winner === ai) {
+                    statusEl.textContent = 'AI 赢了!';
+                    statusEl.className = 'status lose';
+                    scores.ai++;
+                    document.getElementById('aiScore').textContent = scores.ai;
+                } else {
+                    statusEl.textContent = '平局!';
+                    statusEl.className = 'status';
+                    scores.draw++;
+                    document.getElementById('drawScore').textContent = scores.draw;
+                }
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                if (currentPlayer === ai) {
+                    setTimeout(aiMove, 500);
+                }
+            }
+        }
+
+        function handleClick(index) {
+            if (board[index] || gameOver || currentPlayer !== human) return;
+            board[index] = human;
+            renderBoard();
+            checkGameEnd();
+        }
+
+        function renderBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (board[i]) {
+                    cell.classList.add('taken', board[i].toLowerCase());
+                }
+                cell.textContent = board[i];
+                if (!board[i] && !gameOver) {
+                    cell.onclick = () => handleClick(i);
+                }
+                boardEl.appendChild(cell);
+            }
+        }
+
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameOver = false;
+            document.getElementById('status').textContent = '';
+            document.getElementById('status').className = 'status';
+            renderBoard();
+
+            if (ai === 'X') {
+                setTimeout(aiMove, 500);
+            }
+        }
+
+        renderBoard();
+    </script>
+</body>
+</html>

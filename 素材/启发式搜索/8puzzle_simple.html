@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八数码拼图</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 90px);
+            grid-template-rows: repeat(3, 90px);
+            gap: 6px;
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .cell {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cell:hover:not(.empty) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .cell.empty {
+            background: rgba(255,255,255,0.3);
+            cursor: default;
+        }
+        .cell.correct {
+            color: #27ae60;
+            background: #e8f8f0;
+        }
+        .status {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        button {
+            padding: 10px 25px;
+            font-size: 1rem;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .moves {
+            color: rgba(255,255,255,0.8);
+            margin-top: 15px;
+            font-size: 1rem;
+        }
+        .game-wrapper {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        .goal-board {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(3, 50px);
+            gap: 4px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .goal-cell {
+            width: 50px;
+            height: 50px;
+            background: rgba(0,255,136,0.15);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        .goal-cell.empty {
+            background: rgba(255,255,255,0.05);
+            color: #555;
+        }
+        .goal-label {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+        .custom-input {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        .custom-input input {
+            width: 110px;
+            padding: 6px 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 0.9rem;
+        }
+        .custom-input input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        .custom-input button {
+            padding: 6px 15px;
+            font-size: 0.85rem;
+            background: rgba(0,255,136,0.2);
+            color: #00ff88;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>八数码拼图</h1>
+        <div class="game-wrapper">
+            <div>
+                <div class="board" id="board"></div>
+                <p class="status" id="status">继续</p>
+                <div class="btn-group">
+                    <button onclick="undoMove()">撤销</button>
+                    <button onclick="resetGame()">新游戏</button>
+                </div>
+                <p class="moves" id="moves">步数: 0</p>
+            </div>
+            <div class="goal-panel">
+                <div class="goal-board">
+                    <div class="goal-cell">1</div>
+                    <div class="goal-cell">2</div>
+                    <div class="goal-cell">3</div>
+                    <div class="goal-cell">8</div>
+                    <div class="goal-cell empty"></div>
+                    <div class="goal-cell">4</div>
+                    <div class="goal-cell">7</div>
+                    <div class="goal-cell">6</div>
+                    <div class="goal-cell">5</div>
+                </div>
+                <p class="goal-label">目标状态</p>
+                <div class="custom-input">
+                    <input type="text" id="customInput" placeholder="行输入如: 103824765" maxlength="9">
+                    <button onclick="setCustomState()">设置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 目标状态: 123/8_4/765
+        const goalState = [
+            [1, 2, 3],
+            [8, 0, 4],
+            [7, 6, 5]
+        ];
+
+        let board = [];
+        let history = [];
+        let moveCount = 0;
+
+        function boardEqual(a, b) {
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    if (a[r][c] !== b[r][c]) return false;
+                }
+            }
+            return true;
+        }
+
+        function deepCopy(b) {
+            return b.map(row => [...row]);
+        }
+
+        function findEmpty(b) {
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    if (b[r][c] === 0) return { r, c };
+                }
+            }
+        }
+
+        function renderBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    const cell = document.createElement('div');
+                    const num = board[r][c];
+                    cell.className = 'cell' + (num === 0 ? ' empty' : '');
+                    cell.textContent = num || '';
+
+                    // 检查是否在正确位置
+                    if (num !== 0 && board[r][c] === goalState[r][c]) {
+                        cell.classList.add('correct');
+                    }
+
+                    if (num !== 0) {
+                        cell.onclick = () => tryMove(r, c);
+                    }
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function tryMove(r, c) {
+            const empty = findEmpty(board);
+            const isAdjacent = (Math.abs(r - empty.r) === 1 && c === empty.c) ||
+                              (Math.abs(c - empty.c) === 1 && r === empty.r);
+            if (!isAdjacent) return;
+
+            history.push(deepCopy(board));
+            const num = board[r][c];
+            board[r][c] = 0;
+            board[empty.r][empty.c] = num;
+            moveCount++;
+
+            document.getElementById('moves').textContent = `步数: ${moveCount}`;
+            renderBoard();
+
+            if (boardEqual(board, goalState)) {
+                document.getElementById('status').textContent = `恭喜! ${moveCount} 步完成!`;
+                document.getElementById('status').style.color = '#00ff88';
+            }
+        }
+
+        function undoMove() {
+            if (history.length === 0) return;
+            board = history.pop();
+            moveCount--;
+            document.getElementById('moves').textContent = `步数: ${moveCount}`;
+            document.getElementById('status').textContent = '继续';
+            document.getElementById('status').style.color = 'white';
+            renderBoard();
+        }
+
+        function shuffle(count = 30) {
+            let testBoard = deepCopy(goalState);
+            for (let i = 0; i < count; i++) {
+                const empty = findEmpty(testBoard);
+                const moves = [];
+                const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+                for (const [dr, dc] of dirs) {
+                    const nr = empty.r + dr;
+                    const nc = empty.c + dc;
+                    if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
+                        moves.push({ r: nr, c: nc });
+                    }
+                }
+                const move = moves[Math.floor(Math.random() * moves.length)];
+                testBoard[empty.r][empty.c] = testBoard[move.r][move.c];
+                testBoard[move.r][move.c] = 0;
+            }
+            if (boardEqual(testBoard, goalState)) return shuffle(count);
+            return testBoard;
+        }
+
+        function setCustomState() {
+            const input = document.getElementById('customInput').value.trim();
+            if (!/^[0-8]{9}$/.test(input)) {
+                alert('请输入9位数字(0-8)');
+                return;
+            }
+            const arr = input.split('').map(Number);
+            // 检查是否包含0-8所有数字
+            const sorted = arr.slice().sort();
+            if (sorted.join('') !== '012345678') {
+                alert('必须包含0-8每个数字各一次');
+                return;
+            }
+            const newBoard = [
+                [arr[0], arr[1], arr[2]],
+                [arr[3], arr[4], arr[5]],
+                [arr[6], arr[7], arr[8]]
+            ];
+            board = newBoard;
+            history = [];
+            moveCount = 0;
+            document.getElementById('moves').textContent = '步数: 0';
+            document.getElementById('status').textContent = '继续';
+            document.getElementById('status').style.color = 'white';
+            document.getElementById('customInput').value = '';
+            renderBoard();
+        }
+
+        function resetGame() {
+            board = shuffle(25);
+            history = [];
+            moveCount = 0;
+            document.getElementById('moves').textContent = '步数: 0';
+            document.getElementById('status').textContent = '继续';
+            document.getElementById('status').style.color = 'white';
+            renderBoard();
+        }
+
+        resetGame();
+    </script>
+</body>
+</html>
