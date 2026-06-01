@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <title>教师管理 | 信息科技课程助手</title>
-    <link rel="stylesheet" href="styles.css?v=20260601-5" />
+    <link rel="stylesheet" href="styles.css?v=20260601-7" />
   </head>
   <body>
     <div class="site-shell">
@@ -55,6 +55,32 @@
                 <span class="admin-source" id="dataset-source">等待读取</span>
               </div>
 
+              <div class="admin-upload" id="resource-upload" hidden>
+                <div>
+                  <h3>上传资源</h3>
+                  <p>上传课件、任务单或素材后，会先加入下方内容中，确认无误后再保存。</p>
+                </div>
+                <div class="admin-upload-grid">
+                  <label>
+                    资源名称
+                    <input id="resource-title" type="text" placeholder="例如：七年级数据编码任务单" />
+                  </label>
+                  <label>
+                    分类
+                    <input id="resource-category" type="text" placeholder="例如：任务单" />
+                  </label>
+                  <label class="admin-upload-wide">
+                    说明
+                    <input id="resource-description" type="text" placeholder="写一句给学生看的说明" />
+                  </label>
+                  <label class="admin-upload-wide">
+                    选择文件
+                    <input id="resource-file" type="file" />
+                  </label>
+                </div>
+                <button class="button primary" type="button" id="upload-resource">上传并加入资源库</button>
+              </div>
+
               <textarea id="json-editor" spellcheck="false" aria-label="内容编辑区"></textarea>
 
               <div class="admin-actions">
@@ -71,12 +97,14 @@
       </main>
 
       <footer class="site-footer">
-        <span>重庆八中两江数据谷中学校</span>
-        <span>信息科技课程助手</span>
-        <span class="site-footer-credit">现教中心<br />制作</span>
+        <span class="site-footer-main">
+          <span>重庆八中两江数据谷中学校</span>
+          <span>信息科技课程助手</span>
+        </span>
+        <span class="site-footer-credit">现教中心制作@2026</span>
       </footer>
     </div>
 
-    <script src="admin.js?v=20260601-5" defer></script>
+    <script src="admin.js?v=20260601-7" defer></script>
   </body>
 </html>

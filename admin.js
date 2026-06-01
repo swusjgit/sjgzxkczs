@@ -7,7 +7,7 @@ const DATASETS = {
   },
   resources: {
     title: "资源库",
-    help: "整理资源分类和资源条目。文件上传功能以后再加。",
+    help: "上传课件、任务单和素材，也可以整理给学生看的资源说明。",
     staticPath: "data/resources.json",
     apiPath: "/api/content/resources",
   },
@@ -32,6 +32,11 @@ const source = document.querySelector("#dataset-source");
 const statusBox = document.querySelector("#admin-status");
 const tokenInput = document.querySelector("#admin-token");
 const tabs = document.querySelectorAll("[data-key]");
+const resourceUpload = document.querySelector("#resource-upload");
+const resourceTitle = document.querySelector("#resource-title");
+const resourceCategory = document.querySelector("#resource-category");
+const resourceDescription = document.querySelector("#resource-description");
+const resourceFile = document.querySelector("#resource-file");
 
 let activeKey = "news";
 
@@ -50,6 +55,7 @@ function setDatasetUi(key) {
   title.textContent = dataset.title;
   help.textContent = dataset.help;
   tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.key === key));
+  resourceUpload.hidden = key !== "resources";
 }
 
 async function fetchJson(path) {
@@ -156,6 +162,67 @@ async function resetCloudData() {
   }
 }
 
+async function uploadResource() {
+  if (activeKey !== "resources") return;
+
+  const token = getToken();
+  if (!token) {
+    setStatus("请先输入管理密码。", "error");
+    tokenInput.focus();
+    return;
+  }
+
+  const file = resourceFile.files?.[0];
+  if (!file) {
+    setStatus("请先选择一个文件。", "error");
+    resourceFile.focus();
+    return;
+  }
+
+  const name = resourceTitle.value.trim() || file.name;
+  const category = resourceCategory.value.trim() || "学习资源";
+  const description = resourceDescription.value.trim() || "点击打开学习资源。";
+
+  const formData = new FormData();
+  formData.set("file", file);
+  setStatus("正在上传资源...");
+
+  try {
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.message || "上传失败");
+
+    const current = parseEditor() || { categories: [], items: [] };
+    const categories = Array.isArray(current.categories) ? current.categories : [];
+    const items = Array.isArray(current.items) ? current.items : [];
+    if (!categories.includes(category)) categories.push(category);
+
+    items.unshift({
+      id: `resource-${Date.now()}`,
+      title: name,
+      description,
+      category,
+      type: file.type || "文件",
+      url: result.url,
+      filename: result.filename,
+      tags: [category],
+      createdAt: new Date().toISOString(),
+    });
+
+    editor.value = JSON.stringify({ ...current, categories, items }, null, 2);
+    resourceTitle.value = "";
+    resourceDescription.value = "";
+    resourceFile.value = "";
+    setStatus("资源已加入下方内容，请确认后点击“保存内容”。", "success");
+  } catch (error) {
+    setStatus(`上传失败：${error.message}`, "error");
+  }
+}
+
 function formatJson() {
   const data = parseEditor();
   if (!data) return;
@@ -183,6 +250,7 @@ document.querySelector("#format-json").addEventListener("click", formatJson);
 document.querySelector("#save-data").addEventListener("click", saveDataset);
 document.querySelector("#reset-cloud").addEventListener("click", resetCloudData);
 document.querySelector("#remember-token").addEventListener("click", rememberTokenForSession);
+document.querySelector("#upload-resource").addEventListener("click", uploadResource);
 
 tokenInput.value = sessionStorage.getItem("courseAdminToken") || "";
 loadDataset(activeKey);

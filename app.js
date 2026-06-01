@@ -73,6 +73,7 @@ function safeHref(value = "#") {
     href.startsWith("#") ||
     href.startsWith("http://") ||
     href.startsWith("https://") ||
+    href.startsWith("/api/file/") ||
     href.startsWith("素材/")
   ) {
     return escapeHtml(href);
@@ -141,7 +142,7 @@ function getFeaturedNews() {
 
 function quickCard({ route, icon, title, description }) {
   return `
-    <a class="quick-card" href="#/${route}">
+    <a class="quick-card quick-${icon}" href="#/${route}">
       <span class="icon-tile ${icon}">${iconMap[icon]}</span>
       <span>
         <h2>${escapeHtml(title)}</h2>
@@ -155,51 +156,28 @@ function quickCard({ route, icon, title, description }) {
 function renderHome() {
   const featuredNews = getFeaturedNews();
   const featuredTool = state.tools.find((tool) => tool.featured) || state.tools[0];
+  const toolCount = state.tools.length || 0;
+  const newsCount = state.news.length || 0;
 
   return `
     <div class="page-stack">
-      <section class="hero">
-        <div class="hero-copy">
-          <h1>欢迎来到 <strong>信息科技课程助手</strong></h1>
+      <section class="home-hero" aria-label="信息科技课程助手首页">
+        <div class="home-hero-copy">
+          <h1>欢迎来到<br /><strong>信息科技课程助手</strong></h1>
           <p>把教学资源整合在一起，让每一次信息科技课都更有意义。</p>
           <div class="hero-actions">
-            <a class="button primary" href="#/tools">进入课堂工具</a>
-            <a class="button ghost" href="#/ai-news">查看每周 AI 新闻</a>
+            <a class="button hero-primary" href="#/tools">进入课堂工具</a>
+            <a class="button hero-secondary" href="#/ai-news">查看每周 AI 新闻</a>
           </div>
-        </div>
-        <div class="hero-panel" aria-label="信息科技课堂示意图">
-          <div class="hero-visual">
-            <div class="ai-picture-card" role="img" aria-label="AI 三要素由数据、算法和算力共同支撑">
-              <div class="ai-picture-title">
-                <span>AI 三要素</span>
-                <small>数据 + 算法 + 算力</small>
-              </div>
-              <div class="ai-core-row">
-                <div class="ai-core">
-                  <span>AI</span>
-                  <strong>智能应用</strong>
-                </div>
-              </div>
-              <div class="ai-factor-row" aria-hidden="true">
-                <div class="ai-factor data">
-                  <b>数据</b>
-                  <span>观察与样本</span>
-                </div>
-                <div class="ai-factor algorithm">
-                  <b>算法</b>
-                  <span>规则与方法</span>
-                </div>
-                <div class="ai-factor compute">
-                  <b>算力</b>
-                  <span>运行与支撑</span>
-                </div>
-              </div>
-            </div>
+          <div class="home-metrics" aria-label="课程助手概览">
+            <span><strong>${toolCount}</strong><small>课堂工具</small></span>
+            <span><strong>${newsCount || "每周"}</strong><small>AI 新闻</small></span>
+            <span><strong>持续</strong><small>资源更新</small></span>
           </div>
         </div>
       </section>
 
-      <section class="quick-grid" aria-label="主要入口">
+      <section class="quick-grid home-entry-grid" aria-label="主要入口">
         ${quickCard({
           route: "tools",
           icon: "tools",
@@ -244,7 +222,7 @@ function renderHome() {
 function renderFeaturedNews(item) {
   return `
     <div class="featured-news">
-      <div class="news-illustration" aria-hidden="true"><strong>AI</strong></div>
+      ${renderNewsVisual(item, true)}
       <div>
         <h3>${escapeHtml(item.title)}</h3>
         <p>${escapeHtml(item.summary)}</p>
@@ -262,7 +240,7 @@ function renderFeaturedNews(item) {
 function renderNoNews() {
   return `
     <div class="featured-news">
-      <div class="news-illustration" aria-hidden="true"><strong>AI</strong></div>
+      ${renderNewsVisual({ title: "AI 新闻", tags: ["AI"] }, true)}
       <div>
         <h3>每周 AI 新闻等待自动更新</h3>
         <p>更新后，这里会展示本周最适合课堂讨论的一条 AI 新闻。</p>
@@ -352,23 +330,43 @@ function renderResourcesPage() {
           <p>这里汇总课件、素材包、任务单和示例文件，帮助你更方便地找到课堂学习材料。</p>
         </div>
       </section>
-      <section class="resource-frame">
-        <div class="empty-visual" aria-hidden="true">
-          <div class="folder-stack">
-            <div class="folder-row">课件</div>
-            <div class="folder-row">任务单</div>
-            <div class="folder-row">素材包</div>
-          </div>
-        </div>
-        <div class="resource-copy">
-          <h2>资源库建设中</h2>
-          <p>资源会按年级、主题和类型逐步整理，方便你课前预习、课堂探究和课后复习。</p>
-          <div class="resource-categories">
-            ${categories.map((category) => `<span>${escapeHtml(category)}</span>`).join("")}
-          </div>
-        </div>
-      </section>
+      ${
+        state.resources.items?.length
+          ? `<section class="resource-list">${state.resources.items.map(renderResourceCard).join("")}</section>`
+          : `<section class="resource-frame">
+              <div class="empty-visual" aria-hidden="true">
+                <div class="folder-stack">
+                  <div class="folder-row">课件</div>
+                  <div class="folder-row">任务单</div>
+                  <div class="folder-row">素材包</div>
+                </div>
+              </div>
+              <div class="resource-copy">
+                <h2>资源库建设中</h2>
+                <p>资源会按年级、主题和类型逐步整理，方便你课前预习、课堂探究和课后复习。</p>
+                <div class="resource-categories">
+                  ${categories.map((category) => `<span>${escapeHtml(category)}</span>`).join("")}
+                </div>
+              </div>
+            </section>`
+      }
     </div>
+  `;
+}
+
+function renderResourceCard(resource) {
+  const tags = resource.tags || [resource.category, resource.type].filter(Boolean);
+  const href = safeHref(resource.url || resource.href || "#");
+  return `
+    <article class="resource-card">
+      <div>
+        <span class="resource-type">${escapeHtml(resource.category || resource.type || "学习资源")}</span>
+        <h3>${escapeHtml(resource.title || "未命名资源")}</h3>
+        <p>${escapeHtml(resource.description || "点击打开学习资源。")}</p>
+        ${tagsTemplate(tags)}
+      </div>
+      <a class="button primary" href="${href}" target="_blank" rel="noreferrer">打开资源</a>
+    </article>
   `;
 }
 
@@ -460,6 +458,7 @@ function renderAiNewsPage() {
 function renderNewsCard(item) {
   return `
     <article class="news-card ${item.featured ? "featured" : ""}">
+      ${renderNewsVisual(item)}
       <h3>${escapeHtml(item.title)}</h3>
       <p>${escapeHtml(item.summary)}</p>
       <div class="student-thinking"><strong>思考：</strong>${escapeHtml(item.studentThinking || "待补充")}</div>
@@ -469,6 +468,26 @@ function renderNewsCard(item) {
       ${tagsTemplate(item.tags)}
       ${renderNewsLinks(item, { featured: item.featured })}
     </article>
+  `;
+}
+
+function renderNewsVisual(item, large = false) {
+  const imageUrl = item.imageUrl || item.image || item.coverUrl;
+  const alt = item.imageAlt || item.title || "AI 新闻配图";
+  if (imageUrl) {
+    return `
+      <div class="news-visual ${large ? "large" : ""}">
+        <img src="${safeHref(imageUrl)}" alt="${escapeHtml(alt)}" loading="lazy" />
+      </div>
+    `;
+  }
+
+  const firstTag = Array.isArray(item.tags) && item.tags.length ? item.tags[0] : "AI";
+  return `
+    <div class="news-visual generated ${large ? "large" : ""}" aria-hidden="true">
+      <span>${escapeHtml(firstTag)}</span>
+      <strong>AI NEWS</strong>
+    </div>
   `;
 }
 
