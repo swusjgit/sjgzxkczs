@@ -62,6 +62,7 @@ export default async (req) => {
     metadata: {
       contentType,
       filename: file.name || key,
+      size: file.size || bytes.byteLength,
       uploadedAt: new Date().toISOString(),
     },
   });

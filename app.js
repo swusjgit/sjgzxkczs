@@ -102,6 +102,15 @@ function formatDate(dateString) {
   }).format(date);
 }
 
+function formatBytes(bytes = 0) {
+  const size = Number(bytes) || 0;
+  if (!size) return "";
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)} MB`;
+  return `${(size / 1024 / 1024 / 1024).toFixed(1)} GB`;
+}
+
 function tagsTemplate(tags = []) {
   return `
     <div class="tag-list">
@@ -327,7 +336,7 @@ function renderResourcesPage() {
       <section class="section-title">
         <div>
           <h1>资源库</h1>
-          <p>这里汇总课件、素材包、任务单和示例文件，帮助你更方便地找到课堂学习材料。</p>
+          <p>这里汇总课件、素材包、任务单和示例文件，方便你下载课堂学习材料。</p>
         </div>
       </section>
       ${
@@ -357,15 +366,23 @@ function renderResourcesPage() {
 function renderResourceCard(resource) {
   const tags = resource.tags || [resource.category, resource.type].filter(Boolean);
   const href = safeHref(resource.url || resource.href || "#");
+  const isUploadedFile = String(resource.url || resource.href || "").startsWith("/api/file/");
+  const fileMeta = [
+    resource.filename,
+    resource.sizeLabel || formatBytes(resource.size),
+    resource.type,
+  ].filter(Boolean);
+
   return `
     <article class="resource-card">
       <div>
         <span class="resource-type">${escapeHtml(resource.category || resource.type || "学习资源")}</span>
         <h3>${escapeHtml(resource.title || "未命名资源")}</h3>
         <p>${escapeHtml(resource.description || "点击打开学习资源。")}</p>
+        ${fileMeta.length ? `<div class="resource-meta">${fileMeta.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
         ${tagsTemplate(tags)}
       </div>
-      <a class="button primary" href="${href}" target="_blank" rel="noreferrer">打开资源</a>
+      <a class="button primary" href="${href}" target="_blank" rel="noreferrer" ${isUploadedFile ? "download" : ""}>${isUploadedFile ? "下载资源" : "打开资源"}</a>
     </article>
   `;
 }

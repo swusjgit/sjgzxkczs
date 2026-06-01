@@ -4,6 +4,16 @@ function notFound() {
   return Response.json({ error: "Not found" }, { status: 404 });
 }
 
+function encodeFilename(filename = "resource") {
+  return encodeURIComponent(filename)
+    .replace(/['()]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
+    .replace(/\*/g, "%2A");
+}
+
+function asciiFallback(filename = "resource") {
+  return filename.replace(/[^\x20-\x7E]/g, "_").replace(/["\\]/g, "_") || "resource";
+}
+
 export default async (req, context) => {
   if (req.method !== "GET") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
@@ -23,8 +33,9 @@ export default async (req, context) => {
   return new Response(data, {
     headers: {
       "Cache-Control": "public, max-age=31536000, immutable",
-      "Content-Disposition": `inline; filename="${encodeURIComponent(filename)}"`,
+      "Content-Disposition": `attachment; filename="${asciiFallback(filename)}"; filename*=UTF-8''${encodeFilename(filename)}`,
       "Content-Type": contentType,
+      "X-Content-Type-Options": "nosniff",
     },
   });
 };

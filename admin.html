@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <title>教师管理 | 信息科技课程助手</title>
-    <link rel="stylesheet" href="styles.css?v=20260601-7" />
+    <link rel="stylesheet" href="styles.css?v=20260602-1" />
   </head>
   <body>
     <div class="site-shell">
@@ -58,7 +58,7 @@
               <div class="admin-upload" id="resource-upload" hidden>
                 <div>
                   <h3>上传资源</h3>
-                  <p>上传课件、任务单或素材后，会先加入下方内容中，确认无误后再保存。</p>
+                  <p>上传 PDF、课件、压缩包或程序文件后，会先加入下方内容中，确认无误后再保存。</p>
                 </div>
                 <div class="admin-upload-grid">
                   <label>
@@ -75,7 +75,11 @@
                   </label>
                   <label class="admin-upload-wide">
                     选择文件
-                    <input id="resource-file" type="file" />
+                    <input
+                      id="resource-file"
+                      type="file"
+                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.7z,.py,.cpp,.c,.h,.hpp,.java,.js,.html,.css,.txt,.md,.png,.jpg,.jpeg,.gif,.webp"
+                    />
                   </label>
                 </div>
                 <button class="button primary" type="button" id="upload-resource">上传并加入资源库</button>
@@ -105,6 +109,6 @@
       </footer>
     </div>
 
-    <script src="admin.js?v=20260601-7" defer></script>
+    <script src="admin.js?v=20260602-1" defer></script>
   </body>
 </html>

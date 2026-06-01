@@ -7,7 +7,7 @@ const DATASETS = {
   },
   resources: {
     title: "资源库",
-    help: "上传课件、任务单和素材，也可以整理给学生看的资源说明。",
+    help: "上传 PDF、课件、压缩包和程序文件，也可以整理给学生看的资源说明。",
     staticPath: "data/resources.json",
     apiPath: "/api/content/resources",
   },
@@ -47,6 +47,20 @@ function setStatus(message, type = "") {
 
 function getToken() {
   return sessionStorage.getItem("courseAdminToken") || tokenInput.value.trim();
+}
+
+function formatBytes(bytes = 0) {
+  const size = Number(bytes) || 0;
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)} MB`;
+  return `${(size / 1024 / 1024 / 1024).toFixed(1)} GB`;
+}
+
+function fileExtension(filename = "") {
+  const name = String(filename);
+  const index = name.lastIndexOf(".");
+  return index > -1 ? name.slice(index + 1).toUpperCase() : "文件";
 }
 
 function setDatasetUi(key) {
@@ -206,9 +220,13 @@ async function uploadResource() {
       title: name,
       description,
       category,
-      type: file.type || "文件",
+      type: fileExtension(result.filename || file.name),
       url: result.url,
+      storageKey: result.key,
       filename: result.filename,
+      size: result.size || file.size,
+      sizeLabel: formatBytes(result.size || file.size),
+      contentType: result.contentType || file.type || "application/octet-stream",
       tags: [category],
       createdAt: new Date().toISOString(),
     });
