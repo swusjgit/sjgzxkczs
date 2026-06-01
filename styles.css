@@ -275,6 +275,10 @@ a {
   background: rgba(255, 255, 255, 0.74);
 }
 
+.button.danger {
+  color: var(--brand);
+}
+
 .hero-panel {
   position: relative;
   overflow: hidden;
@@ -1051,6 +1055,168 @@ a {
   line-height: 1.7;
 }
 
+.admin-app {
+  width: min(1280px, 100%);
+}
+
+.admin-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-token-card,
+.admin-editor {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 34px rgba(23, 32, 51, 0.06);
+}
+
+.admin-token-card {
+  padding: 20px;
+}
+
+.admin-token-card label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.admin-token-card p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.admin-token-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.admin-token-row input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+}
+
+.admin-token-row input:focus,
+#json-editor:focus {
+  outline: 2px solid rgba(36, 107, 254, 0.18);
+  border-color: #9fb9e4;
+}
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-tabs {
+  display: grid;
+  gap: 8px;
+  position: sticky;
+  top: 104px;
+}
+
+.admin-tabs button {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: #384152;
+  font: inherit;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-tabs button.active {
+  border-color: #eac6c1;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.admin-editor {
+  overflow: hidden;
+}
+
+.admin-editor-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-editor-head h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.admin-editor-head p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.admin-source {
+  align-self: start;
+  min-height: 26px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: #2055b5;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+#json-editor {
+  display: block;
+  width: 100%;
+  min-height: 520px;
+  padding: 18px 20px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  resize: vertical;
+  background: #fbfdff;
+  color: #1f2937;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+}
+
+.admin-status {
+  padding: 12px 20px 18px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.admin-status.success {
+  color: var(--green);
+}
+
+.admin-status.error {
+  color: var(--brand);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1101,6 +1267,19 @@ a {
 
   .news-card.featured {
     grid-column: span 1;
+  }
+
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-tabs {
+    position: static;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .admin-tabs button {
+    text-align: center;
   }
 }
 
@@ -1183,5 +1362,27 @@ a {
     flex-direction: column;
     align-items: center;
     gap: 6px;
+  }
+
+  .admin-token-row,
+  .admin-editor-head,
+  .admin-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-editor-head {
+    display: grid;
+  }
+
+  .admin-actions {
+    justify-content: stretch;
+  }
+
+  .admin-actions .button {
+    width: 100%;
+  }
+
+  #json-editor {
+    min-height: 420px;
   }
 }

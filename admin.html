@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>后台管理 | 信息科技课程助手</title>
+    <link rel="stylesheet" href="styles.css?v=20260601-4" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/#/home" aria-label="返回首页">
+          <img src="素材/校标2.png" alt="重庆八中两江数据谷中学校校标" />
+          <span class="brand-title">后台管理</span>
+        </a>
+        <nav class="site-nav" aria-label="管理导航">
+          <a href="/#/home">返回首页</a>
+          <a href="/admin.html" class="active">数据同步</a>
+        </nav>
+      </header>
+
+      <main class="app admin-app">
+        <section class="section-title">
+          <div>
+            <h1>数据同步后台</h1>
+            <p>先用 JSON 编辑器试运行：读取云端数据，没有云端数据时读取本地默认文件；保存时写入 Netlify Blobs。</p>
+          </div>
+        </section>
+
+        <section class="admin-panel">
+          <div class="admin-token-card">
+            <label for="admin-token">管理令牌</label>
+            <div class="admin-token-row">
+              <input id="admin-token" type="password" autocomplete="off" placeholder="输入 ADMIN_TOKEN 后才能保存" />
+              <button class="button ghost" type="button" id="remember-token">本次会话使用</button>
+            </div>
+            <p>令牌只保存在当前浏览器会话中。学生访问后台也无法保存数据，除非知道管理令牌。</p>
+          </div>
+
+          <div class="admin-layout">
+            <aside class="admin-tabs" aria-label="数据类型">
+              <button type="button" class="active" data-key="news">每周 AI 新闻</button>
+              <button type="button" data-key="resources">资源库</button>
+              <button type="button" data-key="works">学生作品</button>
+              <button type="button" data-key="tools">课堂工具</button>
+            </aside>
+
+            <section class="admin-editor" aria-live="polite">
+              <div class="admin-editor-head">
+                <div>
+                  <h2 id="dataset-title">每周 AI 新闻</h2>
+                  <p id="dataset-help">编辑新闻条目、首页主推和学生思考问题。</p>
+                </div>
+                <span class="admin-source" id="dataset-source">等待加载</span>
+              </div>
+
+              <textarea id="json-editor" spellcheck="false" aria-label="JSON 数据编辑器"></textarea>
+
+              <div class="admin-actions">
+                <button class="button ghost" type="button" id="reload-data">重新加载</button>
+                <button class="button ghost" type="button" id="format-json">格式化 JSON</button>
+                <button class="button ghost danger" type="button" id="reset-cloud">恢复本地默认</button>
+                <button class="button primary" type="button" id="save-data">保存到云端</button>
+              </div>
+
+              <div class="admin-status" id="admin-status">正在加载数据...</div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>重庆八中两江数据谷中学校</span>
+        <span>信息科技课程助手</span>
+        <span class="site-footer-credit">现教中心<br />制作</span>
+      </footer>
+    </div>
+
+    <script src="admin.js?v=20260601-4" defer></script>
+  </body>
+</html>

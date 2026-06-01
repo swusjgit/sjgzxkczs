@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "check": "node --check app.js && node --check admin.js && node --check netlify/functions/content.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^9.1.2"
+  },
+  "devDependencies": {}
+}

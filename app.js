@@ -5,6 +5,13 @@ const DATA_PATHS = {
   works: "data/works.json",
 };
 
+const API_PATHS = {
+  tools: "/api/content/tools",
+  news: "/api/content/news",
+  resources: "/api/content/resources",
+  works: "/api/content/works",
+};
+
 const FALLBACK_DATA = {
   tools: { tools: [] },
   news: { generatedAt: "", featuredId: "", items: [] },
@@ -33,14 +40,22 @@ const iconMap = {
 };
 
 async function loadJson(key) {
-  try {
-    const response = await fetch(DATA_PATHS[key], { cache: "no-store" });
-    if (!response.ok) throw new Error(`Cannot load ${DATA_PATHS[key]}`);
-    return await response.json();
-  } catch (error) {
-    console.warn(error);
-    return FALLBACK_DATA[key];
+  const paths = [API_PATHS[key], DATA_PATHS[key]].filter(Boolean);
+
+  for (const path of paths) {
+    try {
+      const response = await fetch(path, { cache: "no-store" });
+      const contentType = response.headers.get("content-type") || "";
+      if (!response.ok || !contentType.includes("application/json")) {
+        throw new Error(`Cannot load ${path}`);
+      }
+      return await response.json();
+    } catch (error) {
+      if (path === DATA_PATHS[key]) console.warn(error);
+    }
   }
+
+  return FALLBACK_DATA[key];
 }
 
 function escapeHtml(value = "") {
@@ -334,7 +349,7 @@ function renderResourcesPage() {
       <section class="section-title">
         <div>
           <h1>资源库</h1>
-          <p>这一页先保留为空状态，不接后端。以后可以把课件、素材包、任务单和示例文件逐步整理进来。</p>
+          <p>这里汇总课件、素材包、任务单和示例文件。接入后台后，可以逐步整理并同步到云端。</p>
         </div>
       </section>
       <section class="resource-frame">
@@ -347,7 +362,7 @@ function renderResourcesPage() {
         </div>
         <div class="resource-copy">
           <h2>资源库建设中</h2>
-          <p>当前版本先把页面和分类结构搭好。等你把资源放到素材文件夹或后续接入后端后，可以按年级、主题、类型和关键词检索。</p>
+          <p>当前版本先把页面和分类结构搭好。后续通过管理页维护数据后，可以按年级、主题、类型和关键词检索。</p>
           <div class="resource-categories">
             ${categories.map((category) => `<span>${escapeHtml(category)}</span>`).join("")}
           </div>
