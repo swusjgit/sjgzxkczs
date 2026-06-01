@@ -7,30 +7,28 @@
   <style>
     :root {
       --bg: #f7f9fc;
-      --panel: #ffffff;
       --ink: #1f2937;
-      --muted: #6b7280;
+      --muted: #667085;
       --line: #d6dde8;
-      --green: #2f7d5b;
-      --green-soft: #e4f5ec;
-      --blue: #326bff;
-      --blue-soft: #eaf1ff;
+      --root: #e85d75;
+      --root-soft: #fde7ed;
+      --decision: #2f7d5b;
+      --decision-soft: #e4f5ec;
+      --leaf: #326bff;
+      --leaf-soft: #eaf1ff;
       --amber: #f2ad2e;
-      --rose: #e85d75;
       --shadow: 0 12px 30px rgba(31, 41, 55, 0.10);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      min-height: 100vh;
-      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      height: 100vh;
+      overflow: hidden;
       color: var(--ink);
       background: var(--bg);
-      overflow: hidden;
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
     }
 
     .app {
@@ -45,20 +43,19 @@
       gap: 10px;
       padding: 12px 16px;
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(12px);
       overflow-x: auto;
       z-index: 5;
     }
 
     .brand {
+      min-width: 210px;
       display: flex;
       align-items: center;
       gap: 10px;
-      min-width: 220px;
-      margin-right: 6px;
       font-weight: 800;
-      letter-spacing: 0;
+      white-space: nowrap;
     }
 
     .brand-mark {
@@ -67,63 +64,55 @@
       border-radius: 8px;
       display: grid;
       place-items: center;
-      color: white;
-      background: var(--green);
-      font-size: 18px;
+      color: #fff;
+      background: var(--decision);
       font-weight: 900;
     }
 
-    button, select {
-      height: 36px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: white;
-      color: var(--ink);
-      font: inherit;
-      font-size: 14px;
-    }
-
     button {
+      height: 36px;
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      padding: 0 12px;
-      cursor: pointer;
-      white-space: nowrap;
+      gap: 6px;
       flex: 0 0 auto;
-      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: #fff;
+      font: inherit;
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
     }
 
-    button:hover {
-      border-color: #aab7ca;
-      transform: translateY(-1px);
-    }
+    button:hover { border-color: #aab7ca; }
+    button.primary { color: #fff; border-color: var(--decision); background: var(--decision); }
+    button.active { color: var(--leaf); border-color: var(--leaf); background: var(--leaf-soft); font-weight: 700; }
+    button.danger { color: #b42318; }
 
-    button.primary {
-      border-color: var(--green);
-      background: var(--green);
-      color: white;
-    }
-
-    button.active {
-      border-color: var(--blue);
-      background: var(--blue-soft);
-      color: var(--blue);
-      font-weight: 700;
-    }
-
-    button.danger {
-      color: #b42318;
-    }
-
-    .spacer {
-      flex: 1;
-    }
+    .spacer { flex: 1; }
 
     .hint {
-      font-size: 13px;
       color: var(--muted);
+      font-size: 13px;
       white-space: nowrap;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      border: 1px solid transparent;
     }
 
     .workspace {
@@ -131,22 +120,20 @@
       overflow: hidden;
       cursor: grab;
       background:
-        linear-gradient(rgba(47, 125, 91, 0.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(47, 125, 91, 0.045) 1px, transparent 1px),
+        linear-gradient(rgba(47, 125, 91, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(47, 125, 91, 0.05) 1px, transparent 1px),
         var(--bg);
       background-size: 24px 24px;
     }
 
-    .workspace.panning {
-      cursor: grabbing;
-    }
+    .workspace.panning { cursor: grabbing; }
 
     .scene {
       position: absolute;
       left: 0;
       top: 0;
-      width: 2400px;
-      height: 1600px;
+      width: 2600px;
+      height: 1800px;
       transform-origin: 0 0;
     }
 
@@ -159,46 +146,51 @@
 
     .node {
       position: absolute;
-      min-width: 132px;
-      max-width: 240px;
-      min-height: 54px;
+      min-width: 136px;
+      max-width: 250px;
+      min-height: 56px;
       padding: 12px 16px;
-      border: 2px solid var(--green);
+      border: 2px solid var(--decision);
       border-radius: 8px;
-      background: white;
+      background: #fff;
       box-shadow: var(--shadow);
-      cursor: grab;
-      user-select: none;
       display: grid;
       place-items: center;
-      text-align: center;
+      color: var(--ink);
       font-weight: 800;
       line-height: 1.25;
+      text-align: center;
+      user-select: none;
+      cursor: grab;
       z-index: 2;
     }
 
-    .node.leaf {
-      border-color: var(--blue);
-      background: var(--blue-soft);
+    .node.root {
+      border-color: var(--root);
+      background: var(--root-soft);
     }
 
     .node.decision {
-      background: var(--green-soft);
+      border-color: var(--decision);
+      background: var(--decision-soft);
+    }
+
+    .node.leaf {
+      border-color: var(--leaf);
+      background: var(--leaf-soft);
     }
 
     .node.selected {
       outline: 4px solid rgba(50, 107, 255, 0.22);
-      border-color: var(--blue);
+      border-color: var(--leaf);
     }
 
     .node.connect-source {
-      outline: 4px solid rgba(242, 173, 46, 0.35);
+      outline: 4px solid rgba(242, 173, 46, 0.34);
       border-color: var(--amber);
     }
 
-    .node:active {
-      cursor: grabbing;
-    }
+    .node:active { cursor: grabbing; }
 
     .edge-path {
       fill: none;
@@ -209,21 +201,21 @@
     }
 
     .edge-path.selected {
-      stroke: var(--blue);
+      stroke: var(--leaf);
       stroke-width: 3.2;
     }
 
     .edge-label-bg {
-      fill: white;
+      fill: #fff;
       stroke: var(--line);
       stroke-width: 1;
       rx: 6;
     }
 
     .edge-label {
+      fill: var(--ink);
       font-size: 14px;
       font-weight: 700;
-      fill: var(--ink);
       cursor: pointer;
       user-select: none;
     }
@@ -236,8 +228,12 @@
       padding: 10px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: white;
+      background: #fff;
       box-shadow: var(--shadow);
+    }
+
+    .floating-editor.node-editor {
+      padding: 6px;
     }
 
     .floating-editor input {
@@ -246,13 +242,14 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       padding: 0 10px;
+      outline: none;
       font: inherit;
       font-size: 14px;
-      outline: none;
+      font-weight: 700;
     }
 
     .floating-editor input:focus {
-      border-color: var(--blue);
+      border-color: var(--leaf);
       box-shadow: 0 0 0 3px rgba(50, 107, 255, 0.14);
     }
 
@@ -261,34 +258,18 @@
       left: 50%;
       bottom: 22px;
       transform: translateX(-50%);
+      z-index: 20;
       padding: 10px 14px;
       border-radius: 8px;
-      color: white;
+      color: #fff;
       background: rgba(31, 41, 55, 0.88);
       font-size: 14px;
       opacity: 0;
       pointer-events: none;
       transition: opacity 160ms ease;
-      z-index: 20;
     }
 
-    .toast.show {
-      opacity: 1;
-    }
-
-    @media (max-width: 760px) {
-      .toolbar {
-        flex-wrap: wrap;
-      }
-
-      .brand {
-        min-width: 100%;
-      }
-
-      .hint {
-        width: 100%;
-      }
-    }
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
@@ -298,8 +279,9 @@
         <div class="brand-mark">树</div>
         <div>决策树绘制工具</div>
       </div>
+      <button id="addRoot">＋ 根节点</button>
       <button class="primary" id="addDecision">＋ 判断节点</button>
-      <button id="addLeaf">＋ 结果节点</button>
+      <button id="addLeaf">＋ 叶子节点</button>
       <button id="connectMode">↗ 连线</button>
       <button id="editSelected">✎ 编辑</button>
       <button class="danger" id="deleteSelected">⌫ 删除</button>
@@ -307,7 +289,12 @@
       <button id="resetDemo">↺ 示例</button>
       <button id="centerView">⌖ 视图居中</button>
       <div class="spacer"></div>
-      <div class="hint" id="hint">拖动画布空白处可移动视图；双击节点或线条文字可编辑。</div>
+      <div class="legend">
+        <span class="swatch" style="background: var(--root-soft); border-color: var(--root);"></span>根
+        <span class="swatch" style="background: var(--decision-soft); border-color: var(--decision);"></span>判断
+        <span class="swatch" style="background: var(--leaf-soft); border-color: var(--leaf);"></span>叶子
+      </div>
+      <div class="hint" id="hint">双击节点改名；双击连线文字可改条件。</div>
     </header>
 
     <main class="workspace" id="workspace">
@@ -334,8 +321,14 @@
     const editor = document.getElementById("editor");
     const editorInput = document.getElementById("editorInput");
     const toast = document.getElementById("toast");
-    const WORLD_WIDTH = 2400;
-    const WORLD_HEIGHT = 1600;
+    const WORLD_WIDTH = 2600;
+    const WORLD_HEIGHT = 1800;
+
+    const palette = {
+      root: { fill: "#fde7ed", stroke: "#e85d75" },
+      decision: { fill: "#e4f5ec", stroke: "#2f7d5b" },
+      leaf: { fill: "#eaf1ff", stroke: "#326bff" },
+    };
 
     const state = {
       nodes: [],
@@ -361,13 +354,13 @@
       state.nextEdgeId = 1;
       centerView();
 
-      const root = addNode("有羽毛吗？", 520, 72, "decision");
-      const bird = addNode("鸟类", 250, 225, "leaf");
-      const water = addNode("生活在水中吗？", 650, 225, "decision");
-      const fish = addNode("鱼类", 525, 405, "leaf");
-      const milk = addNode("会吃奶吗？", 805, 405, "decision");
-      const mammal = addNode("哺乳动物", 670, 585, "leaf");
-      const other = addNode("其他动物", 950, 585, "leaf");
+      const root = addNode("有羽毛吗？", 520, 72, "root");
+      const bird = addNode("鸟类", 250, 245, "leaf");
+      const water = addNode("生活在水中吗？", 650, 245, "decision");
+      const fish = addNode("鱼类", 525, 430, "leaf");
+      const milk = addNode("会吃奶吗？", 825, 430, "decision");
+      const mammal = addNode("哺乳动物", 680, 615, "leaf");
+      const other = addNode("其他动物", 980, 615, "leaf");
 
       addEdge(root.id, bird.id, "是");
       addEdge(root.id, water.id, "否");
@@ -390,8 +383,7 @@
         showToast("不能把节点连到自己。");
         return null;
       }
-      const exists = state.edges.some(edge => edge.from === from && edge.to === to);
-      if (exists) {
+      if (state.edges.some(edge => edge.from === from && edge.to === to)) {
         showToast("这两个节点已经有一条线了。");
         return null;
       }
@@ -404,14 +396,25 @@
       return state.nodes.find(node => node.id === id);
     }
 
+    function select(kind, id, shouldRender = true) {
+      state.selected = { kind, id };
+      if (shouldRender) render();
+      else refreshSelectionClasses();
+    }
+
+    function refreshSelectionClasses() {
+      document.querySelectorAll(".node").forEach(el => {
+        el.classList.toggle("selected", state.selected?.kind === "node" && state.selected.id === el.dataset.id);
+      });
+      document.querySelectorAll(".edge").forEach(group => {
+        const selected = state.selected?.kind === "edge" && state.selected.id === group.dataset.id;
+        group.querySelector(".edge-path")?.classList.toggle("selected", selected);
+      });
+    }
+
     function clearSelection() {
       state.selected = null;
       state.connectSource = null;
-      render();
-    }
-
-    function select(kind, id) {
-      state.selected = { kind, id };
       render();
     }
 
@@ -419,7 +422,6 @@
       document.querySelectorAll(".node").forEach(node => node.remove());
       Array.from(svg.querySelectorAll(".edge")).forEach(edge => edge.remove());
       applyPan();
-
       state.edges.forEach(renderEdge);
       state.nodes.forEach(renderNode);
       document.getElementById("connectMode").classList.toggle("active", state.connectMode);
@@ -446,13 +448,14 @@
       el.addEventListener("pointerdown", event => {
         if (state.connectMode) return;
         event.stopPropagation();
-        select("node", node.id);
+        select("node", node.id, false);
         state.dragging = {
           id: node.id,
           startX: event.clientX,
           startY: event.clientY,
           nodeX: node.x,
           nodeY: node.y,
+          moved: false,
         };
         el.setPointerCapture(event.pointerId);
       });
@@ -461,6 +464,7 @@
         if (!state.dragging || state.dragging.id !== node.id) return;
         const dx = event.clientX - state.dragging.startX;
         const dy = event.clientY - state.dragging.startY;
+        if (Math.abs(dx) + Math.abs(dy) > 3) state.dragging.moved = true;
         node.x = clamp(state.dragging.nodeX + dx, 12, WORLD_WIDTH - node.w - 12);
         node.y = clamp(state.dragging.nodeY + dy, 12, WORLD_HEIGHT - node.h - 12);
         el.style.left = `${node.x}px`;
@@ -475,7 +479,7 @@
       el.addEventListener("click", event => {
         event.stopPropagation();
         if (!state.connectMode) {
-          select("node", node.id);
+          select("node", node.id, false);
           return;
         }
         if (!state.connectSource) {
@@ -492,7 +496,9 @@
       });
 
       el.addEventListener("dblclick", event => {
+        event.preventDefault();
         event.stopPropagation();
+        state.dragging = null;
         openEditor("node", node.id);
       });
     }
@@ -528,9 +534,11 @@
 
       group.addEventListener("click", event => {
         event.stopPropagation();
-        select("edge", edge.id);
+        select("edge", edge.id, false);
       });
+
       group.addEventListener("dblclick", event => {
+        event.preventDefault();
         event.stopPropagation();
         openEditor("edge", edge.id);
       });
@@ -599,11 +607,13 @@
       const item = kind === "node" ? nodeById(id) : state.edges.find(edge => edge.id === id);
       if (!item) return;
       state.editing = { kind, id };
-      select(kind, id);
+      select(kind, id, false);
       editorInput.value = kind === "node" ? item.text : item.label;
       const pos = editorPosition(kind, id);
+      editor.classList.toggle("node-editor", kind === "node");
       editor.style.left = `${pos.x}px`;
       editor.style.top = `${pos.y}px`;
+      editor.style.width = `${pos.w}px`;
       editor.style.display = "block";
       editorInput.focus();
       editorInput.select();
@@ -613,8 +623,9 @@
       if (kind === "node") {
         const node = nodeById(id);
         return {
-          x: clamp(node.x + state.panX + 8, 8, workspace.clientWidth - 210),
-          y: clamp(node.y + node.h + state.panY + 8, 8, workspace.clientHeight - 58),
+          x: clamp(node.x + state.panX, 8, workspace.clientWidth - 250),
+          y: clamp(node.y + state.panY, 8, workspace.clientHeight - 58),
+          w: clamp(node.w + 12, 190, 280),
         };
       }
       const edge = state.edges.find(e => e.id === id);
@@ -624,6 +635,7 @@
       return {
         x: clamp(mid.x + state.panX - 90, 8, workspace.clientWidth - 210),
         y: clamp(mid.y + state.panY + 8, 8, workspace.clientHeight - 58),
+        w: 190,
       };
     }
 
@@ -644,6 +656,7 @@
     function closeEditor() {
       state.editing = null;
       editor.style.display = "none";
+      editor.classList.remove("node-editor");
     }
 
     function deleteSelected() {
@@ -665,7 +678,6 @@
       clearSelection();
       await nextFrame();
       await nextFrame();
-
       if (!state.nodes.length) {
         showToast("画布上还没有节点。");
         return;
@@ -758,7 +770,6 @@
       const curve = Math.max(38, Math.abs(p.to.y - p.from.y) * 0.45);
       const c1 = { x: p.from.x, y: p.from.y + curve };
       const c2 = { x: p.to.x, y: p.to.y - curve };
-
       ctx.save();
       ctx.strokeStyle = "#526173";
       ctx.lineWidth = 2.2;
@@ -767,7 +778,6 @@
       ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, p.to.x, p.to.y);
       ctx.stroke();
       drawArrowHead(ctx, c2, p.to);
-
       const mid = midPoint(from, to);
       drawExportEdgeLabel(ctx, edge.label || "条件", mid.x, mid.y - 8);
       ctx.restore();
@@ -777,7 +787,6 @@
       const angle = Math.atan2(end.y - control.y, end.x - control.x);
       const length = 13;
       const wing = 0.55;
-      ctx.save();
       ctx.fillStyle = "#526173";
       ctx.beginPath();
       ctx.moveTo(end.x, end.y);
@@ -785,7 +794,6 @@
       ctx.lineTo(end.x - length * Math.cos(angle + wing), end.y - length * Math.sin(angle + wing));
       ctx.closePath();
       ctx.fill();
-      ctx.restore();
     }
 
     function drawExportEdgeLabel(ctx, text, x, y) {
@@ -804,21 +812,18 @@
     }
 
     function drawExportNode(ctx, node) {
-      const fill = node.type === "leaf" ? "#eaf1ff" : "#e4f5ec";
-      const stroke = node.type === "leaf" ? "#326bff" : "#2f7d5b";
-
+      const colors = palette[node.type] || palette.decision;
       ctx.save();
       ctx.shadowColor = "rgba(31, 41, 55, 0.12)";
       ctx.shadowBlur = 18;
       ctx.shadowOffsetY = 8;
       roundedRect(ctx, node.x, node.y, node.w, node.h, 8);
-      ctx.fillStyle = fill;
+      ctx.fillStyle = colors.fill;
       ctx.fill();
       ctx.shadowColor = "transparent";
-      ctx.strokeStyle = stroke;
+      ctx.strokeStyle = colors.stroke;
       ctx.lineWidth = 2;
       ctx.stroke();
-
       ctx.font = "800 16px Microsoft YaHei, PingFang SC, sans-serif";
       ctx.fillStyle = "#1f2937";
       ctx.textAlign = "center";
@@ -864,24 +869,6 @@
       ctx.closePath();
     }
 
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add("show");
-      clearTimeout(showToast.timer);
-      showToast.timer = setTimeout(() => toast.classList.remove("show"), 1600);
-    }
-
-    function updateHint() {
-      const hint = document.getElementById("hint");
-      if (state.connectMode && !state.connectSource) hint.textContent = "连线模式：先点击起点节点。";
-      else if (state.connectMode && state.connectSource) hint.textContent = "连线模式：再点击目标节点，随后可编辑线上的文字。";
-      else hint.textContent = "拖动画布空白处可移动视图；双击节点或线条文字可编辑。";
-    }
-
-    function clamp(value, min, max) {
-      return Math.min(Math.max(value, min), max);
-    }
-
     function applyPan() {
       scene.style.transform = `translate(${state.panX}px, ${state.panY}px)`;
       workspace.style.backgroundPosition = `${state.panX}px ${state.panY}px, ${state.panX}px ${state.panY}px, 0 0`;
@@ -894,14 +881,38 @@
       closeEditor();
     }
 
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+
+    function updateHint() {
+      const hint = document.getElementById("hint");
+      if (state.connectMode && !state.connectSource) hint.textContent = "连线模式：先点击起点节点。";
+      else if (state.connectMode && state.connectSource) hint.textContent = "连线模式：再点击目标节点，然后可编辑线上的文字。";
+      else hint.textContent = "双击节点改名；双击连线文字可改条件。";
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    document.getElementById("addRoot").addEventListener("click", () => {
+      const node = addNode("根节点问题？", 500, 95, "root");
+      select("node", node.id);
+      openEditor("node", node.id);
+    });
+
     document.getElementById("addDecision").addEventListener("click", () => {
-      const node = addNode("新的判断？", 100 + Math.random() * 120, 90 + Math.random() * 90, "decision");
+      const node = addNode("新的判断？", 650 + Math.random() * 120, 280 + Math.random() * 90, "decision");
       select("node", node.id);
       openEditor("node", node.id);
     });
 
     document.getElementById("addLeaf").addEventListener("click", () => {
-      const node = addNode("结果", 130 + Math.random() * 120, 300 + Math.random() * 90, "leaf");
+      const node = addNode("叶子结果", 760 + Math.random() * 120, 520 + Math.random() * 90, "leaf");
       select("node", node.id);
       openEditor("node", node.id);
     });
@@ -983,6 +994,7 @@
       applyPan();
       redrawEdges();
     });
+
     seedDemo();
   </script>
 </body>
