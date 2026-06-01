@@ -222,7 +222,7 @@ function renderHome() {
           route: "ai-news",
           icon: "news",
           title: "每周 AI 新闻",
-          description: "自动汇总适合课堂导入的 AI 动态和讨论点。",
+          description: "每周整理适合课堂阅读和讨论的 AI 动态。",
         })}
       </section>
 
@@ -265,7 +265,7 @@ function renderNoNews() {
       <div class="news-illustration" aria-hidden="true"><strong>AI</strong></div>
       <div>
         <h3>每周 AI 新闻等待自动更新</h3>
-        <p>自动化确认后，这里会展示本周最适合课堂导入的一条 AI 新闻。</p>
+        <p>更新后，这里会展示本周最适合课堂讨论的一条 AI 新闻。</p>
         <div class="card-actions">
           <a class="button blue" href="#/ai-news">查看页面结构</a>
         </div>
@@ -349,7 +349,7 @@ function renderResourcesPage() {
       <section class="section-title">
         <div>
           <h1>资源库</h1>
-          <p>这里汇总课件、素材包、任务单和示例文件。接入后台后，可以逐步整理并同步到云端。</p>
+          <p>这里汇总课件、素材包、任务单和示例文件，帮助你更方便地找到课堂学习材料。</p>
         </div>
       </section>
       <section class="resource-frame">
@@ -362,7 +362,7 @@ function renderResourcesPage() {
         </div>
         <div class="resource-copy">
           <h2>资源库建设中</h2>
-          <p>当前版本先把页面和分类结构搭好。后续通过管理页维护数据后，可以按年级、主题、类型和关键词检索。</p>
+          <p>资源会按年级、主题和类型逐步整理，方便你课前预习、课堂探究和课后复习。</p>
           <div class="resource-categories">
             ${categories.map((category) => `<span>${escapeHtml(category)}</span>`).join("")}
           </div>
@@ -409,7 +409,7 @@ function renderWorksEmpty() {
           <article class="work-card">
             <div class="work-placeholder">${escapeHtml(title.slice(0, 2))}</div>
             <h3>${escapeHtml(title)}</h3>
-            <p>作品征集中。后续可以从素材文件夹读取图片、说明和链接，形成正式展示卡片。</p>
+            <p>作品征集中。后续会补充图片、说明和访问链接，形成正式展示卡片。</p>
           </article>
         `,
       ).join("")}
@@ -445,12 +445,12 @@ function renderAiNewsPage() {
       }
       <section class="panel">
         <div class="panel-header">
-          <h2>自动化更新规范</h2>
+          <h2>阅读与思考建议</h2>
         </div>
         <ul class="guide-list" style="padding: 0 26px 26px;">
-          <li><span>1</span><div>每周检索过去 7 天 AI 新闻，优先选择教育应用、生成式 AI、AI 安全与伦理、重要模型与工具动态。</div></li>
-          <li><span>2</span><div>写入 <code>data/ai-news.json</code>，每条包含标题、日期、来源、链接、摘要、思考问题和标签。</div></li>
-          <li><span>3</span><div>将最重要的一条标记为 <code>featured: true</code>，首页会自动展示。</div></li>
+          <li><span>1</span><div>先看标题和摘要，判断这条新闻和我们的学习、生活有什么关系。</div></li>
+          <li><span>2</span><div>再打开来源链接，看看新闻来自哪里，信息是否可信。</div></li>
+          <li><span>3</span><div>最后回答“思考”问题，把自己的观点说清楚，也可以和同学讨论。</div></li>
         </ul>
       </section>
     </div>
@@ -479,12 +479,12 @@ function renderAiNewsEmpty() {
         <div class="folder-stack">
           <div class="folder-row">搜索新闻</div>
           <div class="folder-row">整理思考问题</div>
-          <div class="folder-row">同步首页精选</div>
+          <div class="folder-row">整理首页精选</div>
         </div>
       </div>
       <div class="resource-copy">
-        <h2>等待第一次自动化更新</h2>
-        <p>自动化启用后，这里会出现每周 AI 新闻列表。当前页面结构已经准备好，后续只需要更新数据文件。</p>
+        <h2>等待第一次更新</h2>
+        <p>更新后，这里会出现每周 AI 新闻列表。你可以从新闻里了解 AI 的新变化，也练习判断信息是否可靠。</p>
       </div>
     </section>
   `;

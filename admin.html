@@ -4,42 +4,42 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
-    <title>后台管理 | 信息科技课程助手</title>
-    <link rel="stylesheet" href="styles.css?v=20260601-4" />
+    <title>教师管理 | 信息科技课程助手</title>
+    <link rel="stylesheet" href="styles.css?v=20260601-5" />
   </head>
   <body>
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="/#/home" aria-label="返回首页">
           <img src="素材/校标2.png" alt="重庆八中两江数据谷中学校校标" />
-          <span class="brand-title">后台管理</span>
+          <span class="brand-title">教师管理</span>
         </a>
         <nav class="site-nav" aria-label="管理导航">
           <a href="/#/home">返回首页</a>
-          <a href="/admin.html" class="active">数据同步</a>
+          <a href="/admin.html" class="active">教师管理</a>
         </nav>
       </header>
 
       <main class="app admin-app">
         <section class="section-title">
           <div>
-            <h1>数据同步后台</h1>
-            <p>先用 JSON 编辑器试运行：读取云端数据，没有云端数据时读取本地默认文件；保存时写入 Netlify Blobs。</p>
+            <h1>教师管理页面</h1>
+            <p>这是教师维护课程内容的页面。学生不能访问或修改这里的内容。</p>
           </div>
         </section>
 
         <section class="admin-panel">
           <div class="admin-token-card">
-            <label for="admin-token">管理令牌</label>
+            <label for="admin-token">管理密码</label>
             <div class="admin-token-row">
-              <input id="admin-token" type="password" autocomplete="off" placeholder="输入 ADMIN_TOKEN 后才能保存" />
+              <input id="admin-token" type="password" autocomplete="off" placeholder="请输入管理密码后再保存" />
               <button class="button ghost" type="button" id="remember-token">本次会话使用</button>
             </div>
-            <p>令牌只保存在当前浏览器会话中。学生访问后台也无法保存数据，除非知道管理令牌。</p>
+            <p>请不要把管理密码告诉学生。没有管理密码时，只能查看页面，不能修改网站内容。</p>
           </div>
 
           <div class="admin-layout">
-            <aside class="admin-tabs" aria-label="数据类型">
+            <aside class="admin-tabs" aria-label="内容类型">
               <button type="button" class="active" data-key="news">每周 AI 新闻</button>
               <button type="button" data-key="resources">资源库</button>
               <button type="button" data-key="works">学生作品</button>
@@ -52,19 +52,19 @@
                   <h2 id="dataset-title">每周 AI 新闻</h2>
                   <p id="dataset-help">编辑新闻条目、首页主推和学生思考问题。</p>
                 </div>
-                <span class="admin-source" id="dataset-source">等待加载</span>
+                <span class="admin-source" id="dataset-source">等待读取</span>
               </div>
 
-              <textarea id="json-editor" spellcheck="false" aria-label="JSON 数据编辑器"></textarea>
+              <textarea id="json-editor" spellcheck="false" aria-label="内容编辑区"></textarea>
 
               <div class="admin-actions">
-                <button class="button ghost" type="button" id="reload-data">重新加载</button>
-                <button class="button ghost" type="button" id="format-json">格式化 JSON</button>
-                <button class="button ghost danger" type="button" id="reset-cloud">恢复本地默认</button>
-                <button class="button primary" type="button" id="save-data">保存到云端</button>
+                <button class="button ghost" type="button" id="reload-data">重新读取</button>
+                <button class="button ghost" type="button" id="format-json">整理格式</button>
+                <button class="button ghost danger" type="button" id="reset-cloud">恢复默认</button>
+                <button class="button primary" type="button" id="save-data">保存内容</button>
               </div>
 
-              <div class="admin-status" id="admin-status">正在加载数据...</div>
+              <div class="admin-status" id="admin-status">正在读取内容...</div>
             </section>
           </div>
         </section>
@@ -77,6 +77,6 @@
       </footer>
     </div>
 
-    <script src="admin.js?v=20260601-4" defer></script>
+    <script src="admin.js?v=20260601-5" defer></script>
   </body>
 </html>

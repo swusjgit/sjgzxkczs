@@ -7,7 +7,7 @@ const DATASETS = {
   },
   resources: {
     title: "资源库",
-    help: "维护资源分类和资源条目。第一版先保存结构化数据，文件上传后续再加。",
+    help: "整理资源分类和资源条目。文件上传功能以后再加。",
     staticPath: "data/resources.json",
     apiPath: "/api/content/resources",
   },
@@ -64,24 +64,24 @@ async function fetchJson(path) {
 async function loadDataset(key = activeKey) {
   const dataset = DATASETS[key];
   setDatasetUi(key);
-  setStatus("正在加载数据...");
-  source.textContent = "加载中";
+  setStatus("正在读取内容...");
+  source.textContent = "读取中";
 
   try {
     const data = await fetchJson(dataset.apiPath);
     editor.value = JSON.stringify(data, null, 2);
-    source.textContent = "云端数据";
-    setStatus("已加载云端数据。");
+    source.textContent = "最新内容";
+    setStatus("已读取最新内容。");
   } catch {
     try {
       const data = await fetchJson(dataset.staticPath);
       editor.value = JSON.stringify(data, null, 2);
-      source.textContent = "本地默认";
-      setStatus("云端暂无数据，已加载本地默认文件。保存后会写入云端。");
-    } catch (error) {
+      source.textContent = "默认内容";
+      setStatus("已读取默认内容。保存后会更新网站。");
+    } catch {
       editor.value = "";
-      source.textContent = "加载失败";
-      setStatus(`加载失败：${error.message}`, "error");
+      source.textContent = "读取失败";
+      setStatus("读取失败，请稍后再试。", "error");
     }
   }
 }
@@ -89,8 +89,8 @@ async function loadDataset(key = activeKey) {
 function parseEditor() {
   try {
     return JSON.parse(editor.value);
-  } catch (error) {
-    setStatus(`JSON 格式错误：${error.message}`, "error");
+  } catch {
+    setStatus("内容格式不正确，请检查括号、引号和逗号。", "error");
     return null;
   }
 }
@@ -98,7 +98,7 @@ function parseEditor() {
 async function saveDataset() {
   const token = getToken();
   if (!token) {
-    setStatus("请先输入管理令牌。", "error");
+    setStatus("请先输入管理密码。", "error");
     tokenInput.focus();
     return;
   }
@@ -107,7 +107,7 @@ async function saveDataset() {
   if (!data) return;
 
   const dataset = DATASETS[activeKey];
-  setStatus("正在保存到云端...");
+  setStatus("正在保存内容...");
 
   try {
     const response = await fetch(dataset.apiPath, {
@@ -121,8 +121,8 @@ async function saveDataset() {
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.message || "保存失败");
 
-    source.textContent = "云端数据";
-    setStatus(`已保存到云端：${result.updatedAt || "刚刚"}`, "success");
+    source.textContent = "最新内容";
+    setStatus(`已保存，网站内容已更新。${result.updatedAt ? `更新时间：${result.updatedAt}` : ""}`, "success");
   } catch (error) {
     setStatus(`保存失败：${error.message}`, "error");
   }
@@ -131,16 +131,16 @@ async function saveDataset() {
 async function resetCloudData() {
   const token = getToken();
   if (!token) {
-    setStatus("请先输入管理令牌。", "error");
+    setStatus("请先输入管理密码。", "error");
     tokenInput.focus();
     return;
   }
 
-  const ok = window.confirm("确认删除这类云端数据，恢复使用本地默认文件吗？");
+  const ok = window.confirm("确认把这类内容恢复为默认状态吗？");
   if (!ok) return;
 
   const dataset = DATASETS[activeKey];
-  setStatus("正在删除云端覆盖数据...");
+  setStatus("正在恢复默认内容...");
 
   try {
     const response = await fetch(dataset.apiPath, {
@@ -149,7 +149,7 @@ async function resetCloudData() {
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.message || "删除失败");
-    setStatus("云端覆盖数据已删除，正在重新加载本地默认文件。", "success");
+    setStatus("已恢复默认内容，正在重新读取。", "success");
     await loadDataset(activeKey);
   } catch (error) {
     setStatus(`删除失败：${error.message}`, "error");
@@ -160,18 +160,18 @@ function formatJson() {
   const data = parseEditor();
   if (!data) return;
   editor.value = JSON.stringify(data, null, 2);
-  setStatus("JSON 已格式化。");
+  setStatus("内容格式已整理。");
 }
 
 function rememberTokenForSession() {
   const token = tokenInput.value.trim();
   if (!token) {
-    setStatus("请输入管理令牌。", "error");
+    setStatus("请输入管理密码。", "error");
     tokenInput.focus();
     return;
   }
   sessionStorage.setItem("courseAdminToken", token);
-  setStatus("管理令牌已在本次会话中记住。", "success");
+  setStatus("管理密码已在本次会话中记住。", "success");
 }
 
 tabs.forEach((tab) => {
