@@ -146,7 +146,7 @@ function renderHome() {
       <section class="hero">
         <div class="hero-copy">
           <h1>欢迎来到 <strong>信息科技课程助手</strong></h1>
-          <p>把课堂工具、学习资源、学生作品和每周 AI 新闻集中在一起，让每一次信息科技课都更清晰、更好用。</p>
+          <p>把教学资源整合在一起，让每一次信息科技课都更有意义。</p>
           <div class="hero-actions">
             <a class="button primary" href="#/tools">进入课堂工具</a>
             <a class="button ghost" href="#/ai-news">查看每周 AI 新闻</a>
