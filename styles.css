@@ -684,13 +684,6 @@ a {
   padding: 22px;
 }
 
-.tool-card.featured {
-  border-color: #efc8c3;
-  background:
-    linear-gradient(135deg, rgba(255, 242, 240, 0.85), rgba(255, 255, 255, 0.95)),
-    var(--panel);
-}
-
 .card-top {
   display: flex;
   justify-content: space-between;
