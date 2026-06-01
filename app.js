@@ -154,20 +154,31 @@ function renderHome() {
         </div>
         <div class="hero-panel" aria-label="信息科技课堂示意图">
           <div class="hero-visual">
-            <div class="code-window">
-              <div class="window-top"><span></span><span></span><span></span></div>
-              <div class="window-body">
-                <div class="code-line short"></div>
-                <div class="code-line"></div>
-                <div class="code-line mid"></div>
-                <div class="code-line short"></div>
+            <div class="ai-picture-card" role="img" aria-label="AI 三要素由数据、算法和算力共同支撑">
+              <div class="ai-picture-title">
+                <span>AI 三要素</span>
+                <small>数据 + 算法 + 算力</small>
               </div>
-            </div>
-            <div class="node-demo">
-              <div>AI 三要素</div>
-              <div>数据</div>
-              <div>算法</div>
-              <div>算力</div>
+              <div class="ai-core-row">
+                <div class="ai-core">
+                  <span>AI</span>
+                  <strong>智能应用</strong>
+                </div>
+              </div>
+              <div class="ai-factor-row" aria-hidden="true">
+                <div class="ai-factor data">
+                  <b>数据</b>
+                  <span>观察与样本</span>
+                </div>
+                <div class="ai-factor algorithm">
+                  <b>算法</b>
+                  <span>规则与方法</span>
+                </div>
+                <div class="ai-factor compute">
+                  <b>算力</b>
+                  <span>运行与支撑</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -278,7 +289,7 @@ function renderToolsPage() {
       <section class="section-title">
         <div>
           <h1>课堂工具</h1>
-          <p>这里放置可直接用于课堂演示、学生探究和项目学习的小工具。已自动识别素材文件夹中的 HTML 工具。</p>
+          <p>这里放置可直接用于课堂演示、学生探究和项目学习的小工具。</p>
         </div>
       </section>
       <section class="tool-grid">
