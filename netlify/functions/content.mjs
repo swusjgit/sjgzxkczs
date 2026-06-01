@@ -17,7 +17,15 @@ function getKey(req, context) {
 }
 
 function getAdminToken() {
-  return globalThis.Netlify?.env?.get?.("ADMIN_TOKEN") || "";
+  try {
+    if (typeof Netlify !== "undefined" && Netlify.env?.get) {
+      return Netlify.env.get("ADMIN_TOKEN") || "";
+    }
+  } catch {
+    // Fall back to process.env below when the Netlify global is unavailable.
+  }
+
+  return globalThis.Netlify?.env?.get?.("ADMIN_TOKEN") || globalThis.process?.env?.ADMIN_TOKEN || "";
 }
 
 function requireAdmin(req) {
