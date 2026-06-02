@@ -130,22 +130,26 @@ async function saveDataset() {
   setStatus("正在保存内容...");
 
   try {
-    const response = await fetch(dataset.apiPath, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.message || "保存失败");
-
+    const result = await persistDataset(dataset, data, token);
     source.textContent = "最新内容";
     setStatus(`已保存，网站内容已更新。${result.updatedAt ? `更新时间：${result.updatedAt}` : ""}`, "success");
   } catch (error) {
     setStatus(`保存失败：${error.message}`, "error");
   }
+}
+
+async function persistDataset(dataset, data, token) {
+  const response = await fetch(dataset.apiPath, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.message || "保存失败");
+  return result;
 }
 
 async function resetCloudData() {
@@ -231,13 +235,17 @@ async function uploadResource() {
       createdAt: new Date().toISOString(),
     });
 
-    editor.value = JSON.stringify({ ...current, categories, items }, null, 2);
+    const nextData = { ...current, categories, items };
+    editor.value = JSON.stringify(nextData, null, 2);
+    setStatus("资源已上传，正在保存到资源库...");
+    const saved = await persistDataset(DATASETS.resources, nextData, token);
+    source.textContent = "最新内容";
     resourceTitle.value = "";
     resourceDescription.value = "";
     resourceFile.value = "";
-    setStatus("资源已加入下方内容，请确认后点击“保存内容”。", "success");
+    setStatus(`资源已上传并保存，学生现在可以下载。${saved.updatedAt ? `更新时间：${saved.updatedAt}` : ""}`, "success");
   } catch (error) {
-    setStatus(`上传失败：${error.message}`, "error");
+    setStatus(`上传或保存失败：${error.message}`, "error");
   }
 }
 
