@@ -1237,6 +1237,31 @@ a {
   min-height: 250px;
 }
 
+.work-card-link {
+  color: inherit;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.work-card-link:hover {
+  transform: translateY(-2px);
+  border-color: #bfccdc;
+  box-shadow: var(--shadow);
+}
+
+.work-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.work-card-body .tag-list {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
 .work-placeholder {
   min-height: 128px;
   display: grid;
@@ -1249,6 +1274,24 @@ a {
   color: var(--blue);
   font-size: 38px;
   font-weight: 900;
+}
+
+.work-image {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  margin: -2px -2px 0;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 25% 28%, rgba(44, 169, 255, 0.18), transparent 34%),
+    linear-gradient(135deg, #edf8ff, #ffffff);
+}
+
+.work-image img {
+  width: min(190px, 72%);
+  max-height: 150px;
+  display: block;
+  object-fit: contain;
 }
 
 .guide-list {

@@ -435,17 +435,30 @@ function renderWorksEmpty() {
 function renderWorkCard(work) {
   const href = safeHref(work.url || work.href || "#");
   const hasLink = href !== "#";
+  const image = work.image || work.cover || work.coverUrl;
+  const media = image
+    ? `<div class="work-image"><img src="${safeHref(image)}" alt="${escapeHtml(work.imageAlt || work.title)}" loading="lazy" /></div>`
+    : `<div class="work-placeholder">${escapeHtml(work.title.slice(0, 2))}</div>`;
+  const content = `
+      ${media}
+      <div class="work-card-body">
+        <h3>${escapeHtml(work.title)}</h3>
+        <p>${escapeHtml(work.description)}</p>
+        ${tagsTemplate(work.tags)}
+      </div>
+  `;
+
+  if (hasLink) {
+    return `
+      <a class="work-card work-card-link" href="${href}" target="_blank" rel="noreferrer" aria-label="打开${escapeHtml(work.title)}">
+        ${content}
+      </a>
+    `;
+  }
+
   return `
     <article class="work-card">
-      <div class="work-placeholder">${escapeHtml(work.title.slice(0, 2))}</div>
-      <h3>${escapeHtml(work.title)}</h3>
-      <p>${escapeHtml(work.description)}</p>
-      ${tagsTemplate(work.tags)}
-      ${
-        hasLink
-          ? `<div class="card-actions"><a class="button primary" href="${href}" target="_blank" rel="noreferrer">打开作品</a></div>`
-          : ""
-      }
+      ${content}
     </article>
   `;
 }
