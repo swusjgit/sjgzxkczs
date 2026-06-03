@@ -37,6 +37,16 @@ Netlify 已绑定 GitHub 仓库，后续发布以 GitHub 为唯一入口：
 
 除非 Netlify 自动部署失败，平时不再手动运行 Netlify 部署命令。这样可以避免“先推 GitHub、再手动传 Netlify”的重复流程，也能让线上版本和 GitHub 仓库保持一致。
 
+### Netlify 暂时不可用时
+
+如果 Netlify 因额度、服务状态或其他原因暂时无法访问，仍然先把所有网站改动提交并推送到 GitHub。GitHub 仓库作为当前网站的唯一可信版本来源。
+
+GitHub Pages 作为备用访问方案，仓库已加入 GitHub Pages 自动发布工作流。启用 GitHub Pages 后，备用地址为：
+
+- `https://swusjgit.github.io/sjgzxkczs/`
+
+Netlify 恢复后，继续由 Netlify 从 GitHub `main` 分支自动拉取最新版本。
+
 ## 文案规则
 
 网站页面上显示给使用者看的文字，应当使用面向学生的表达。避免在页面文案中出现 JSON、Netlify Blobs、接口、云端存储、文件路径等实现细节。管理页面只需要说明这是教师使用的入口，学生不能访问或修改内容。
