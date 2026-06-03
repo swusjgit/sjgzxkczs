@@ -394,7 +394,7 @@ function renderWorksPage() {
       <section class="section-title">
         <div>
           <h1>学生作品展示</h1>
-          <p>用于展示课堂项目、算法小作品、网页作品和 AI 创意应用。当前先放展示规范，等有作品素材后再生成作品卡片。</p>
+          <p>这里展示课堂项目、算法小作品、网页作品和创意应用，方便你参考学习、寻找灵感。</p>
         </div>
       </section>
       ${
@@ -433,12 +433,19 @@ function renderWorksEmpty() {
 }
 
 function renderWorkCard(work) {
+  const href = safeHref(work.url || work.href || "#");
+  const hasLink = href !== "#";
   return `
     <article class="work-card">
       <div class="work-placeholder">${escapeHtml(work.title.slice(0, 2))}</div>
       <h3>${escapeHtml(work.title)}</h3>
       <p>${escapeHtml(work.description)}</p>
       ${tagsTemplate(work.tags)}
+      ${
+        hasLink
+          ? `<div class="card-actions"><a class="button primary" href="${href}" target="_blank" rel="noreferrer">打开作品</a></div>`
+          : ""
+      }
     </article>
   `;
 }

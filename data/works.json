@@ -1,3 +1,11 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "mblock-exhibition",
+      "title": "慧编程课例展示",
+      "description": "展示慧编程课堂课例与创意作品，方便你查看学习案例，寻找项目灵感。",
+      "url": "https://holy-young.github.io/mBlockExhibition/",
+      "tags": ["慧编程", "课例展示", "创意编程"]
+    }
+  ]
 }
