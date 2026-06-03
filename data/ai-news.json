@@ -1,119 +1,111 @@
 {
-  "generatedAt": "2026-05-31T23:15:00+08:00",
-  "featuredId": "people-cctv-ai-thinking-2026-05-31",
+  "generatedAt": "2026-06-01T10:30:00+08:00",
+  "featuredId": "cctv-people-ai-thinking-2026-05-31",
   "items": [
     {
-      "id": "people-cctv-ai-thinking-2026-05-31",
+      "id": "cctv-people-ai-thinking-2026-05-31",
       "title": "AI 浪潮下，如何培养青少年的思维能力？",
       "date": "2026-05-31",
       "source": "央视网 / 人民日报",
       "sourceUrl": "https://news.cctv.com/2026/05/31/ARTI91hYXAv8Om5qBDNYvioW260531.shtml",
       "links": [
         {
-          "label": "央视网",
+          "label": "央视网原文",
           "url": "https://news.cctv.com/2026/05/31/ARTI91hYXAv8Om5qBDNYvioW260531.shtml"
         },
         {
-          "label": "人民网",
+          "label": "人民网报道",
           "url": "https://edu.people.com.cn/n1/2026/0531/c1006-40730751.html"
-        },
-        {
-          "label": "中国日报网",
-          "url": "https://cn.chinadaily.com.cn/a/202605/31/WS6a1ba4a5a310942cc49af294.html"
         }
       ],
-      "summary": "报道聚焦 AI 时代如何培养青少年的批判性思维、提问能力和独立判断能力，强调 AI 应成为思维脚手架而不是替代思考的拐杖。",
-      "studentThinking": "你可以想一想：哪些任务可以请 AI 帮忙？哪些判断和思考必须由你自己完成？",
-      "tags": ["国内媒体", "青少年", "AI 素养"],
+      "summary": "报道提醒我们，AI 能帮你查资料和整理想法，但真正重要的提问、判断和创造，还是要靠你自己完成。",
+      "studentThinking": "你可以想一想：写作业、做项目时，哪些步骤适合请 AI 帮忙？哪些关键判断必须由你自己来做？",
+      "tags": ["七至九年级", "AI 素养", "独立思考"],
       "featured": true
     },
     {
-      "id": "xinhua-world-digital-education-2026-05-13",
-      "title": "2026 世界数字教育大会展示 AI 教育新样态",
-      "date": "2026-05-13",
-      "source": "新华社 / 央视网",
-      "sourceUrl": "https://www.news.cn/20260513/8250dbf5a01643c1bbe7cc3bba5459ea/c.html",
-      "links": [
-        {
-          "label": "新华网",
-          "url": "https://www.news.cn/20260513/8250dbf5a01643c1bbe7cc3bba5459ea/c.html"
-        },
-        {
-          "label": "央视网",
-          "url": "https://news.cctv.com/2026/05/13/ARTIz98JGvOVp8B327VI1gLg260513.shtml"
-        }
-      ],
-      "summary": "世界数字教育大会集中展示 AI 赋能课堂、学生成长数据、智能体学习助手等场景，呈现教育数字化的真实应用。",
-      "studentThinking": "读这条新闻时，留意 AI 在课堂中帮了什么忙，也想一想学习数据和个人隐私应该怎样被保护。",
-      "tags": ["国内媒体", "数字教育", "课堂应用"],
-      "featured": false
-    },
-    {
-      "id": "cyberspace-ai-literacy-framework-2026-05-20",
-      "title": "全民人工智能素养参考框架发布",
-      "date": "2026-05-20",
-      "source": "央视网 / 中国网信网",
-      "sourceUrl": "https://gongyi.cctv.com/2026/05/20/ARTIKayWvxNV0ZVkffbrYgRv260520.shtml",
-      "links": [
-        {
-          "label": "央视网",
-          "url": "https://gongyi.cctv.com/2026/05/20/ARTIKayWvxNV0ZVkffbrYgRv260520.shtml"
-        }
-      ],
-      "summary": "全民数字素养与技能提升论坛发布人工智能素养相关报告和参考框架，关注通识教育、师生数字素养和智能鸿沟。",
-      "studentThinking": "你可以把“AI 素养”理解为不只会用工具，还要懂一点原理、会辨别信息、会保护隐私并负责任地使用。",
-      "tags": ["国内媒体", "AI 素养", "数字公民"],
-      "featured": false
-    },
-    {
-      "id": "cac-ai-safety-barrier-2026-05-12",
-      "title": "合力共筑人工智能安全屏障",
-      "date": "2026-05-12",
-      "source": "中央网信办 / 经济日报",
-      "sourceUrl": "https://www.cac.gov.cn/2026-05/12/c_1780328264756091.htm",
-      "links": [
-        {
-          "label": "中央网信办",
-          "url": "https://www.cac.gov.cn/2026-05/12/c_1780328264756091.htm"
-        }
-      ],
-      "summary": "文章梳理我国在生成式 AI、算法推荐和深度合成等领域的治理实践，强调发展 AI 的同时要守住安全底线。",
-      "studentThinking": "想一想：为什么 AI 生成的图片、视频或文字需要标识？如果推荐算法没有规则，可能会带来什么问题？",
-      "tags": ["国内媒体", "AI 安全", "伦理治理"],
-      "featured": false
-    },
-    {
-      "id": "xinhua-smart-industry-expo-2026-05-28",
-      "title": "世界智能产业博览会展示 AI 场景落地",
+      "id": "gmw-ai-classroom-2026-05-28",
+      "title": "当AI叩响课堂，人工智能如何重塑教育版图？",
       "date": "2026-05-28",
-      "source": "新华社",
-      "sourceUrl": "https://www.news.cn/tech/20260528/48e3bd182f4c4e24aeb7696b62c53c93/c.html",
+      "source": "光明网",
+      "sourceUrl": "https://tech.gmw.cn/2026-05/28/content_38794469.htm",
       "links": [
         {
-          "label": "新华网",
-          "url": "https://www.news.cn/tech/20260528/48e3bd182f4c4e24aeb7696b62c53c93/c.html"
+          "label": "光明网原文",
+          "url": "https://tech.gmw.cn/2026-05/28/content_38794469.htm"
         }
       ],
-      "summary": "2026 世界智能产业博览会集中展示人工智能核心技术、具身智能、智能网联车、低空经济和智慧生活等应用场景。",
-      "studentThinking": "试着找一个你身边的 AI 应用，分析它需要哪些数据、算法和算力支持。",
-      "tags": ["国内媒体", "产业应用", "AI 三要素"],
+      "summary": "文章讨论 AI 进入课堂后，学校不能只比谁用得快，更要教会学生辨别答案、提出问题和保护隐私。",
+      "studentThinking": "读这条新闻时，留意一个问题：如果 AI 给出的答案很流畅，你会用什么办法确认它真的可靠？",
+      "tags": ["课堂应用", "信息判断", "数字公民"],
+      "featured": false
+    },
+    {
+      "id": "cctv-youth-ai-family-2026-05-28",
+      "title": "拓展视野vs产生依赖：调查显示孩子常用AI，家长喜忧参半",
+      "date": "2026-05-28",
+      "source": "央视网 / 中国青年报",
+      "sourceUrl": "https://news.cctv.com/2026/05/28/ARTIxccnpewnNh3V1793ornf260528.shtml",
+      "links": [
+        {
+          "label": "央视网原文",
+          "url": "https://news.cctv.com/2026/05/28/ARTIxccnpewnNh3V1793ornf260528.shtml"
+        }
+      ],
+      "summary": "报道关注学生使用 AI 写作、搜题和聊天的现象，也提醒家长和学校注意依赖问题、错误信息和隐私风险。",
+      "studentThinking": "你可以想一想：如果同学把 AI 生成的内容直接当成自己的作业提交，这样公平吗？为什么？",
+      "tags": ["家庭讨论", "学习工具", "使用边界"],
+      "featured": false
+    },
+    {
+      "id": "stdaily-ai-measurement-2026-05-28",
+      "title": "两部门联合发力，破解AI“测不准”“数据荒”难题",
+      "date": "2026-05-28",
+      "source": "科技日报",
+      "sourceUrl": "https://www.stdaily.com/web/gdxw/2026-05/28/content_524071.html",
+      "links": [
+        {
+          "label": "科技日报原文",
+          "url": "https://www.stdaily.com/web/gdxw/2026-05/28/content_524071.html"
+        }
+      ],
+      "summary": "这份文件想解决“怎么判断 AI 好不好用、安不安全”的问题，让测试标准更清楚，减少乱用和误判。",
+      "studentThinking": "你可以留意：为什么一个 AI 工具不能只看它“聪不聪明”，还要看它是否稳定、安全、容易出错？",
+      "tags": ["AI 安全", "标准规则", "科技治理"],
+      "featured": false
+    },
+    {
+      "id": "xinhua-models-out-of-chatbox-2026-05-29",
+      "title": "记者手记：大模型走出对话框，这些应用好用又接地气",
+      "date": "2026-05-29",
+      "source": "新华网",
+      "sourceUrl": "https://www.news.cn/fortune/20260529/3f48d43cd2364d05a431a13aba7070d5/c.html",
+      "links": [
+        {
+          "label": "新华网原文",
+          "url": "https://www.news.cn/fortune/20260529/3f48d43cd2364d05a431a13aba7070d5/c.html"
+        }
+      ],
+      "summary": "展会集中展示机器人、智能汽车和智慧生活场景，让人看到 AI 不只会聊天，也能进入工厂、交通和家庭。",
+      "studentThinking": "你可以选一个展会里的 AI 应用，想一想它最需要哪些数据、传感器或规则才能真正用起来。",
+      "tags": ["产业应用", "机器人", "AI 三要素"],
       "featured": false
     },
     {
       "id": "openai-frontier-governance-2026-05-28",
-      "title": "OpenAI 发布前沿模型治理框架",
+      "title": "OpenAI 发布前沿模型治理框架，强调更强 AI 需要更多测试",
       "date": "2026-05-28",
       "source": "OpenAI",
       "sourceUrl": "https://openai.com/index/openai-frontier-governance-framework/",
       "links": [
         {
-          "label": "OpenAI 官网",
+          "label": "OpenAI 原文",
           "url": "https://openai.com/index/openai-frontier-governance-framework/"
         }
       ],
-      "summary": "OpenAI 用治理框架说明如何评估和管理更强 AI 模型的风险，强调安全、评测和责任分工。",
-      "studentThinking": "读这条国际新闻时，可以和国内 AI 治理新闻对照：越强大的模型，为什么越需要规则、测试和责任边界？",
-      "tags": ["国际动态", "模型治理", "AI 安全"],
+      "summary": "OpenAI 说明，能力越强的模型越要经过风险评估、分级测试和限制措施，避免被误用或带来更大伤害。",
+      "studentThinking": "读这条国际新闻时，你可以想一想：为什么技术越强，越不能只追求“更快更厉害”，还要先谈规则？",
+      "tags": ["国际动态", "模型治理", "AI 伦理"],
       "featured": false
     }
   ]

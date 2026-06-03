@@ -69,6 +69,43 @@
       font-weight: 900;
     }
 
+    .tree-field {
+      height: 38px;
+      min-width: 190px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .tree-purpose-field {
+      min-width: 320px;
+    }
+
+    .tree-field input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .tree-field input::placeholder {
+      color: #98a2b3;
+      font-weight: 500;
+    }
+
     button {
       height: 36px;
       display: inline-flex;
@@ -142,6 +179,44 @@
       inset: 0;
       width: 100%;
       height: 100%;
+    }
+
+    .tree-card {
+      position: absolute;
+      left: 96px;
+      top: 48px;
+      z-index: 3;
+      width: 430px;
+      min-height: 106px;
+      padding: 16px 18px;
+      border: 1px solid rgba(214, 221, 232, 0.92);
+      border-left: 5px solid var(--decision);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 10px 26px rgba(31, 41, 55, 0.09);
+      pointer-events: none;
+    }
+
+    .tree-card-kicker {
+      color: var(--decision);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+
+    .tree-card h1 {
+      margin: 5px 0 6px;
+      color: var(--ink);
+      font-size: 23px;
+      line-height: 1.22;
+    }
+
+    .tree-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+      line-height: 1.6;
     }
 
     .node {
@@ -279,12 +354,21 @@
         <div class="brand-mark">树</div>
         <div>决策树绘制工具</div>
       </div>
+      <label class="tree-field">
+        <span>名称</span>
+        <input id="treeName" maxlength="24" placeholder="给这棵树取个名字" />
+      </label>
+      <label class="tree-field tree-purpose-field">
+        <span>用途</span>
+        <input id="treePurpose" maxlength="60" placeholder="这棵树用来判断什么？" />
+      </label>
       <button id="addRoot">＋ 根节点</button>
       <button class="primary" id="addDecision">＋ 判断节点</button>
       <button id="addLeaf">＋ 叶子节点</button>
       <button id="connectMode">↗ 连线</button>
       <button id="editSelected">✎ 编辑</button>
       <button class="danger" id="deleteSelected">⌫ 删除</button>
+      <button class="danger" id="clearTree">清空</button>
       <button id="exportPng">⇩ 导出图片</button>
       <button id="resetDemo">↺ 示例</button>
       <button id="centerView">⌖ 视图居中</button>
@@ -306,6 +390,11 @@
             </marker>
           </defs>
         </svg>
+        <section class="tree-card" aria-label="决策树信息">
+          <div class="tree-card-kicker">决策树名称</div>
+          <h1 id="treeCardName"></h1>
+          <p id="treeCardPurpose"></p>
+        </section>
       </div>
       <div class="floating-editor" id="editor">
         <input id="editorInput" autocomplete="off" />
@@ -321,8 +410,15 @@
     const editor = document.getElementById("editor");
     const editorInput = document.getElementById("editorInput");
     const toast = document.getElementById("toast");
+    const treeNameInput = document.getElementById("treeName");
+    const treePurposeInput = document.getElementById("treePurpose");
+    const treeCardName = document.getElementById("treeCardName");
+    const treeCardPurpose = document.getElementById("treeCardPurpose");
     const WORLD_WIDTH = 2600;
     const WORLD_HEIGHT = 1800;
+    const DEFAULT_TREE_NAME = "未命名决策树";
+    const EMPTY_TREE_PURPOSE = "先写一句话：这棵树用来判断什么？";
+    const TREE_INFO_CARD = { x: 96, y: 48, w: 430, h: 106 };
 
     const palette = {
       root: { fill: "#fde7ed", stroke: "#e85d75" },
@@ -341,6 +437,8 @@
       panX: 0,
       panY: 0,
       editing: null,
+      treeName: DEFAULT_TREE_NAME,
+      treePurpose: "",
       nextNodeId: 1,
       nextEdgeId: 1,
     };
@@ -350,17 +448,22 @@
       state.edges = [];
       state.selected = null;
       state.connectSource = null;
+      state.connectMode = false;
       state.nextNodeId = 1;
       state.nextEdgeId = 1;
+      setTreeInfo(
+        "动物分类决策树",
+        "根据动物特征一步步判断类别，练习把复杂问题拆成连续的条件选择。"
+      );
       centerView();
 
-      const root = addNode("有羽毛吗？", 520, 72, "root");
-      const bird = addNode("鸟类", 250, 245, "leaf");
-      const water = addNode("生活在水中吗？", 650, 245, "decision");
-      const fish = addNode("鱼类", 525, 430, "leaf");
-      const milk = addNode("会吃奶吗？", 825, 430, "decision");
-      const mammal = addNode("哺乳动物", 680, 615, "leaf");
-      const other = addNode("其他动物", 980, 615, "leaf");
+      const root = addNode("有羽毛吗？", 650, 172, "root");
+      const bird = addNode("鸟类", 300, 335, "leaf");
+      const water = addNode("生活在水中吗？", 740, 335, "decision");
+      const fish = addNode("鱼类", 590, 500, "leaf");
+      const milk = addNode("会吃奶吗？", 900, 500, "decision");
+      const mammal = addNode("哺乳动物", 750, 665, "leaf");
+      const other = addNode("其他动物", 1050, 665, "leaf");
 
       addEdge(root.id, bird.id, "是");
       addEdge(root.id, water.id, "否");
@@ -369,6 +472,25 @@
       addEdge(milk.id, mammal.id, "是");
       addEdge(milk.id, other.id, "否");
       render();
+    }
+
+    function setTreeInfo(name, purpose) {
+      state.treeName = name.trim() || DEFAULT_TREE_NAME;
+      state.treePurpose = purpose.trim();
+      treeNameInput.value = state.treeName;
+      treePurposeInput.value = state.treePurpose;
+      renderTreeInfo();
+    }
+
+    function syncTreeInfoFromInputs() {
+      state.treeName = treeNameInput.value.trim() || DEFAULT_TREE_NAME;
+      state.treePurpose = treePurposeInput.value.trim();
+      renderTreeInfo();
+    }
+
+    function renderTreeInfo() {
+      treeCardName.textContent = state.treeName || DEFAULT_TREE_NAME;
+      treeCardPurpose.textContent = state.treePurpose || EMPTY_TREE_PURPOSE;
     }
 
     function addNode(text, x, y, type) {
@@ -673,6 +795,27 @@
       render();
     }
 
+    function clearTree() {
+      const hasContent = state.nodes.length || state.edges.length || treeNameInput.value.trim() || treePurposeInput.value.trim();
+      if (!hasContent) {
+        showToast("画布已经是空的。");
+        return;
+      }
+      if (!window.confirm("确定清空当前决策树吗？名称、用途和所有节点都会清除。")) return;
+      state.nodes = [];
+      state.edges = [];
+      state.selected = null;
+      state.connectMode = false;
+      state.connectSource = null;
+      state.nextNodeId = 1;
+      state.nextEdgeId = 1;
+      setTreeInfo(DEFAULT_TREE_NAME, "");
+      closeEditor();
+      centerView();
+      render();
+      showToast("已清空，可以开始新的决策树。");
+    }
+
     async function exportPng() {
       closeEditor();
       clearSelection();
@@ -693,6 +836,7 @@
       ctx.translate(-bounds.x, -bounds.y);
 
       drawExportBackground(ctx, bounds);
+      drawExportTreeInfo(ctx);
       state.edges.forEach(edge => drawExportEdge(ctx, edge));
       state.nodes.forEach(node => drawExportNode(ctx, node));
 
@@ -703,7 +847,7 @@
         }
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.download = "decision-tree.png";
+        link.download = `${safeFileName(state.treeName || DEFAULT_TREE_NAME)}.png`;
         link.href = url;
         document.body.appendChild(link);
         link.click();
@@ -724,6 +868,8 @@
         xs.push(node.x, node.x + node.w);
         ys.push(node.y, node.y + node.h);
       });
+      xs.push(TREE_INFO_CARD.x, TREE_INFO_CARD.x + TREE_INFO_CARD.w);
+      ys.push(TREE_INFO_CARD.y, TREE_INFO_CARD.y + TREE_INFO_CARD.h);
       state.edges.forEach(edge => {
         const from = nodeById(edge.from);
         const to = nodeById(edge.to);
@@ -760,6 +906,38 @@
         ctx.lineTo(bounds.x + bounds.w, y);
         ctx.stroke();
       }
+    }
+
+    function drawExportTreeInfo(ctx) {
+      ctx.save();
+      roundedRect(ctx, TREE_INFO_CARD.x, TREE_INFO_CARD.y, TREE_INFO_CARD.w, TREE_INFO_CARD.h, 8);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
+      ctx.fill();
+      ctx.strokeStyle = "#d6dde8";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = "#2f7d5b";
+      ctx.fillRect(TREE_INFO_CARD.x, TREE_INFO_CARD.y, 5, TREE_INFO_CARD.h);
+      ctx.font = "900 13px Microsoft YaHei, PingFang SC, sans-serif";
+      ctx.fillStyle = "#2f7d5b";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText("决策树名称", TREE_INFO_CARD.x + 18, TREE_INFO_CARD.y + 16);
+      ctx.font = "900 23px Microsoft YaHei, PingFang SC, sans-serif";
+      ctx.fillStyle = "#1f2937";
+      ctx.fillText(state.treeName || DEFAULT_TREE_NAME, TREE_INFO_CARD.x + 18, TREE_INFO_CARD.y + 38, TREE_INFO_CARD.w - 36);
+      ctx.font = "650 14px Microsoft YaHei, PingFang SC, sans-serif";
+      ctx.fillStyle = "#667085";
+      drawWrappedTextLeft(
+        ctx,
+        state.treePurpose || EMPTY_TREE_PURPOSE,
+        TREE_INFO_CARD.x + 18,
+        TREE_INFO_CARD.y + 70,
+        TREE_INFO_CARD.w - 36,
+        20,
+        2
+      );
+      ctx.restore();
     }
 
     function drawExportEdge(ctx, edge) {
@@ -854,6 +1032,28 @@
       });
     }
 
+    function drawWrappedTextLeft(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) {
+      const lines = [];
+      let current = "";
+      Array.from(String(text)).forEach(char => {
+        const next = current + char;
+        if (current && ctx.measureText(next).width > maxWidth) {
+          lines.push(current);
+          current = char;
+        } else {
+          current = next;
+        }
+      });
+      if (current) lines.push(current);
+      const visibleLines = lines.slice(0, maxLines);
+      if (lines.length > maxLines) {
+        visibleLines[maxLines - 1] = `${visibleLines[maxLines - 1].slice(0, -1)}…`;
+      }
+      visibleLines.forEach((line, index) => {
+        ctx.fillText(line, x, y + index * lineHeight, maxWidth);
+      });
+    }
+
     function roundedRect(ctx, x, y, w, h, r) {
       const radius = Math.min(r, w / 2, h / 2);
       ctx.beginPath();
@@ -892,27 +1092,35 @@
       const hint = document.getElementById("hint");
       if (state.connectMode && !state.connectSource) hint.textContent = "连线模式：先点击起点节点。";
       else if (state.connectMode && state.connectSource) hint.textContent = "连线模式：再点击目标节点，然后可编辑线上的文字。";
-      else hint.textContent = "双击节点改名；双击连线文字可改条件。";
+      else hint.textContent = "先写名称和用途；双击节点改名；双击连线文字可改条件。";
     }
 
     function clamp(value, min, max) {
       return Math.min(Math.max(value, min), max);
     }
 
+    function safeFileName(value) {
+      return String(value)
+        .trim()
+        .replace(/[\\/:*?"<>|]/g, "-")
+        .replace(/\s+/g, "")
+        .slice(0, 40) || "decision-tree";
+    }
+
     document.getElementById("addRoot").addEventListener("click", () => {
-      const node = addNode("根节点问题？", 500, 95, "root");
+      const node = addNode("根节点问题？", 650, 172, "root");
       select("node", node.id);
       openEditor("node", node.id);
     });
 
     document.getElementById("addDecision").addEventListener("click", () => {
-      const node = addNode("新的判断？", 650 + Math.random() * 120, 280 + Math.random() * 90, "decision");
+      const node = addNode("新的判断？", 720 + Math.random() * 120, 335 + Math.random() * 90, "decision");
       select("node", node.id);
       openEditor("node", node.id);
     });
 
     document.getElementById("addLeaf").addEventListener("click", () => {
-      const node = addNode("叶子结果", 760 + Math.random() * 120, 520 + Math.random() * 90, "leaf");
+      const node = addNode("叶子结果", 820 + Math.random() * 120, 520 + Math.random() * 90, "leaf");
       select("node", node.id);
       openEditor("node", node.id);
     });
@@ -933,9 +1141,12 @@
     });
 
     document.getElementById("deleteSelected").addEventListener("click", deleteSelected);
+    document.getElementById("clearTree").addEventListener("click", clearTree);
     document.getElementById("exportPng").addEventListener("click", exportPng);
     document.getElementById("resetDemo").addEventListener("click", seedDemo);
     document.getElementById("centerView").addEventListener("click", centerView);
+    treeNameInput.addEventListener("input", syncTreeInfoFromInputs);
+    treePurposeInput.addEventListener("input", syncTreeInfoFromInputs);
 
     workspace.addEventListener("pointerdown", event => {
       if (event.target !== workspace && event.target !== svg) return;
@@ -978,6 +1189,7 @@
     editorInput.addEventListener("blur", commitEditor);
 
     window.addEventListener("keydown", event => {
+      if (document.activeElement === treeNameInput || document.activeElement === treePurposeInput) return;
       if (event.key === "Delete" || event.key === "Backspace") {
         if (document.activeElement === editorInput) return;
         deleteSelected();
