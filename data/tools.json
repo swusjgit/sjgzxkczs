@@ -49,6 +49,16 @@
       "icon": "game",
       "tags": ["AI 对战", "博弈", "策略"],
       "statusLabel": "可使用"
+    },
+    {
+      "id": "gomoku-unbeatable",
+      "title": "不可战胜五子棋 AI",
+      "description": "挑战强防守五子棋 AI，观察它如何识别连五威胁、封堵关键位置并寻找反击机会。",
+      "href": "素材/启发式搜索/gomoku_unbeatable.html",
+      "cta": "挑战 AI",
+      "icon": "game",
+      "tags": ["五子棋", "博弈搜索", "评价函数"],
+      "statusLabel": "可使用"
     }
   ]
 }
