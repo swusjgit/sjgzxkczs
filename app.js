@@ -28,6 +28,29 @@ const state = {
 
 const app = document.querySelector("#app");
 
+const AI_TOOL_LINKS = [
+  {
+    name: "豆包",
+    href: "https://www.doubao.com/chat/",
+    description: "适合提问、写作和整理学习思路。",
+  },
+  {
+    name: "DeepSeek",
+    href: "https://chat.deepseek.com/",
+    description: "适合尝试推理、代码和数学问题。",
+  },
+  {
+    name: "文心一言",
+    href: "https://yiyan.baidu.com/",
+    description: "适合中文问答、写作和资料整理。",
+  },
+  {
+    name: "通义千问",
+    href: "https://www.qianwen.com/qianwen/",
+    description: "适合对话、阅读辅助和学习探索。",
+  },
+];
+
 const iconMap = {
   tools: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m14.7 6.3 3 3"/><path d="M8 16 18.5 5.5a2.1 2.1 0 0 1 3 3L11 19l-4 1 1-4Z"/><path d="m2 22 5-5"/><path d="m5 19 3 3"/></svg>`,
   resources: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H10l2 2h6.5A2.5 2.5 0 0 1 21 8.5v8A3.5 3.5 0 0 1 17.5 20h-11A3.5 3.5 0 0 1 3 16.5Z"/></svg>`,
@@ -224,7 +247,29 @@ function renderHome() {
 
         ${featuredTool ? renderToolSpotlight(featuredTool) : ""}
       </section>
+
+      ${renderAiToolLinks()}
     </div>
+  `;
+}
+
+function renderAiToolLinks() {
+  return `
+    <section class="ai-tool-links" aria-label="常用 AI 工具链接">
+      <div>
+        <span class="section-kicker">常用 AI 工具</span>
+        <h2>学习时可以试试这些 AI 助手</h2>
+        <p>使用 AI 时，记得先自己思考，再把它当成提问、比较和完善想法的伙伴。</p>
+      </div>
+      <div class="ai-link-grid">
+        ${AI_TOOL_LINKS.map((tool) => `
+          <a class="ai-link-card" href="${safeHref(tool.href)}" target="_blank" rel="noreferrer">
+            <strong>${escapeHtml(tool.name)}</strong>
+            <span>${escapeHtml(tool.description)}</span>
+          </a>
+        `).join("")}
+      </div>
+    </section>
   `;
 }
 
@@ -367,6 +412,7 @@ function renderResourceCard(resource) {
   const tags = resource.tags || [resource.category, resource.type].filter(Boolean);
   const href = safeHref(resource.url || resource.href || "#");
   const isUploadedFile = String(resource.url || resource.href || "").startsWith("/api/file/");
+  const files = Array.isArray(resource.files) ? resource.files.filter((file) => file?.url) : [];
   const fileMeta = [
     resource.filename,
     resource.sizeLabel || formatBytes(resource.size),
@@ -381,8 +427,25 @@ function renderResourceCard(resource) {
         <p>${escapeHtml(resource.description || "点击打开学习资源。")}</p>
         ${fileMeta.length ? `<div class="resource-meta">${fileMeta.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
         ${tagsTemplate(tags)}
+        ${
+          files.length
+            ? `<div class="resource-file-list">
+                <strong>课件清单</strong>
+                ${files.map((file) => `
+                  <a href="${safeHref(file.url)}" target="_blank" rel="noreferrer">
+                    <span>${escapeHtml(file.title || file.filename || "课件")}</span>
+                    <small>${escapeHtml(file.sizeLabel || formatBytes(file.size) || "PDF")}</small>
+                  </a>
+                `).join("")}
+              </div>`
+            : ""
+        }
       </div>
-      <a class="button primary" href="${href}" target="_blank" rel="noreferrer" ${isUploadedFile ? "download" : ""}>${isUploadedFile ? "下载资源" : "打开资源"}</a>
+      ${
+        files.length
+          ? ""
+          : `<a class="button primary" href="${href}" target="_blank" rel="noreferrer" ${isUploadedFile ? "download" : ""}>${isUploadedFile ? "下载资源" : "打开资源"}</a>`
+      }
     </article>
   `;
 }
