@@ -317,7 +317,7 @@
 
       <article class="thinking-card">
         <h2>思考</h2>
-        <p>AI 并不是随便落子：它会先寻找“马上能赢”的位置，再拦住你马上能赢的位置，最后比较不同位置的进攻和防守价值。</p>
+        <p>AI 并不是随便落子：它会先寻找“马上能赢”的位置，再拦住你马上能赢的位置，还会识别活三、冲四、双活三这类组合威胁。</p>
       </article>
 
       <div class="score-panel" aria-label="比分">
@@ -493,6 +493,9 @@
       const urgentBlock = findBestThreatBlock(candidates);
       if (urgentBlock) return urgentBlock;
 
+      const forcing = findBestForcingMove(AI, candidates);
+      if (forcing) return forcing;
+
       let best = null;
       for (const move of candidates) {
         board[move.row][move.col] = AI;
@@ -501,7 +504,7 @@
         const replyDanger = estimateHumanReply(move);
         board[move.row][move.col] = EMPTY;
         const centerBias = 18 - (Math.abs(move.row - 7) + Math.abs(move.col - 7));
-        const score = aiScore * 1.12 + humanAfter * 0.92 + centerBias * 7 - replyDanger * 0.55;
+        const score = aiScore * 1.15 + humanAfter * 0.86 + centerBias * 7 - replyDanger * 0.92;
         if (!best || score > best.score) {
           best = {
             row: move.row,
@@ -528,17 +531,37 @@
       let best = null;
       for (const move of candidates) {
         board[move.row][move.col] = HUMAN;
-        const threat = scorePoint(move.row, move.col, HUMAN);
+        const profile = analyzeThreatAt(move.row, move.col, HUMAN);
+        const threat = threatSeverity(profile) + scorePoint(move.row, move.col, HUMAN);
         board[move.row][move.col] = EMPTY;
-        if (threat >= 26000 && (!best || threat > best.threat)) {
-          best = { ...move, threat };
+        if (threat >= 900000 && (!best || threat > best.threat)) {
+          best = { ...move, threat, profile };
         }
       }
       if (!best) return null;
       return {
         row: best.row,
         col: best.col,
-        reason: "这里能压住你的强威胁，先防守可以避免局面失控。",
+        reason: threatReason(best.profile),
+      };
+    }
+
+    function findBestForcingMove(player, candidates) {
+      let best = null;
+      for (const move of candidates) {
+        board[move.row][move.col] = player;
+        const profile = analyzeThreatAt(move.row, move.col, player);
+        const threat = threatSeverity(profile) + scorePoint(move.row, move.col, player);
+        board[move.row][move.col] = EMPTY;
+        if (threat >= 1600000 && (!best || threat > best.threat)) {
+          best = { ...move, threat, profile };
+        }
+      }
+      if (!best) return null;
+      return {
+        row: best.row,
+        col: best.col,
+        reason: "AI 先制造必须回应的威胁，让下一步进攻更主动。",
       };
     }
 
@@ -548,7 +571,9 @@
       for (const move of candidates) {
         if (move.row === aiMove.row && move.col === aiMove.col) continue;
         board[move.row][move.col] = HUMAN;
-        danger = Math.max(danger, scorePoint(move.row, move.col, HUMAN));
+        const profile = analyzeThreatAt(move.row, move.col, HUMAN);
+        const threat = threatSeverity(profile) + scorePoint(move.row, move.col, HUMAN);
+        danger = Math.max(danger, threat);
         board[move.row][move.col] = EMPTY;
       }
       return danger;
@@ -556,8 +581,89 @@
 
     function describeMove(move, aiScore, humanScore, replyDanger) {
       if (aiScore > humanScore * 1.18) return "AI 选择扩大自己的连续棋形，准备制造下一轮威胁。";
+      if (replyDanger > 1200000) return "AI 预判到你可能形成双向威胁，所以把棋落在更安全的位置。";
       if (replyDanger > 18000) return "AI 预判到你可能形成强攻，所以把棋落在更安全的位置。";
       return "AI 选择同时兼顾进攻和防守的位置，让多个方向保持连接。";
+    }
+
+    function analyzeThreatAt(row, col, player) {
+      const profile = {
+        win: false,
+        openFour: 0,
+        simpleFour: 0,
+        openThree: 0,
+        liveTwo: 0,
+      };
+      for (const [dr, dc] of DIRECTIONS) {
+        const line = lineString(row, col, dr, dc, player);
+        const flags = lineThreatFlags(line);
+        if (flags.win) profile.win = true;
+        if (flags.openFour) profile.openFour += 1;
+        if (flags.simpleFour) profile.simpleFour += 1;
+        if (flags.openThree) profile.openThree += 1;
+        if (flags.liveTwo) profile.liveTwo += 1;
+      }
+      return profile;
+    }
+
+    function lineString(row, col, dr, dc, player) {
+      const tokens = [];
+      for (let step = -4; step <= 4; step += 1) {
+        const r = row + dr * step;
+        const c = col + dc * step;
+        if (!inside(r, c)) {
+          tokens.push("B");
+        } else if (board[r][c] === player) {
+          tokens.push("P");
+        } else if (board[r][c] === EMPTY) {
+          tokens.push("_");
+        } else {
+          tokens.push("B");
+        }
+      }
+      return tokens.join("");
+    }
+
+    function lineThreatFlags(line) {
+      return {
+        win: line.includes("PPPPP"),
+        openFour: line.includes("_PPPP_"),
+        simpleFour: hasWindow(line, 5, segment => !segment.includes("B") && countChar(segment, "P") === 4 && countChar(segment, "_") === 1),
+        openThree: /_PPP_|_PP_P_|_P_PP_/.test(line),
+        liveTwo: /__PP__|__P_P__/.test(line),
+      };
+    }
+
+    function threatSeverity(profile) {
+      if (profile.win) return 100000000;
+      if (profile.openFour > 0) return 50000000;
+      if (profile.simpleFour >= 2) return 30000000;
+      if (profile.simpleFour >= 1 && profile.openThree >= 1) return 22000000;
+      if (profile.openThree >= 2) return 16000000;
+      if (profile.simpleFour >= 1) return 3500000;
+      if (profile.openThree >= 1) return 900000;
+      if (profile.liveTwo >= 2) return 180000;
+      if (profile.liveTwo >= 1) return 45000;
+      return 0;
+    }
+
+    function threatReason(profile) {
+      if (profile.openFour > 0 || profile.simpleFour >= 2) return "这里能压住你的冲四威胁，AI 必须先防守。";
+      if (profile.simpleFour >= 1 && profile.openThree >= 1) return "这里会形成“四三”组合，AI 先把关键点封住。";
+      if (profile.openThree >= 2) return "这里会形成双活三，AI 先封住这个交叉威胁点。";
+      if (profile.openThree >= 1) return "这里能形成活三，AI 先压住你的连续进攻。";
+      return "这里能压住你的强威胁，先防守可以避免局面失控。";
+    }
+
+    function hasWindow(line, size, predicate) {
+      for (let index = 0; index <= line.length - size; index += 1) {
+        if (predicate(line.slice(index, index + size))) return true;
+      }
+      return false;
+    }
+
+    function countChar(text, target) {
+      return Array.from(text).filter(char => char === target).length;
     }
 
     function evaluateBoard(player) {
@@ -610,8 +716,14 @@
 
     function getCandidateMoves(radius = 2) {
       const moves = new Map();
-      if (!history.length) return [{ row: 7, col: 7 }];
-      for (const item of history) {
+      const stones = [];
+      for (let row = 0; row < SIZE; row += 1) {
+        for (let col = 0; col < SIZE; col += 1) {
+          if (board[row][col] !== EMPTY) stones.push({ row, col });
+        }
+      }
+      if (!stones.length) return [{ row: 7, col: 7 }];
+      for (const item of stones) {
         for (let dr = -radius; dr <= radius; dr += 1) {
           for (let dc = -radius; dc <= radius; dc += 1) {
             const row = item.row + dr;
@@ -712,7 +824,8 @@
       let best = null;
       for (const move of candidates) {
         board[move.row][move.col] = HUMAN;
-        const score = scorePoint(move.row, move.col, HUMAN);
+        const profile = analyzeThreatAt(move.row, move.col, HUMAN);
+        const score = threatSeverity(profile) + scorePoint(move.row, move.col, HUMAN);
         board[move.row][move.col] = EMPTY;
         if (!best || score > best.score) best = { ...move, score };
       }
