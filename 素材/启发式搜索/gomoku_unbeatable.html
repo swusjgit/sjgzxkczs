@@ -313,11 +313,11 @@
     <section class="intro" aria-label="游戏说明">
       <div class="badge">AI 博弈 · 搜索策略 · 评价函数</div>
       <h1>不可战胜<span>五子棋 AI</span></h1>
-      <p class="lead">你执黑先手，AI 执白后手。试着连成五子，同时观察 AI 如何判断威胁、封堵路线、寻找反击机会。</p>
+      <p class="lead">你执黑先手，AI 执白后手。试着寻找连续威胁，同时观察 AI 如何判断棋形、封堵路线、寻找反击机会。</p>
 
       <article class="thinking-card">
         <h2>思考</h2>
-        <p>AI 并不是随便落子：它会先寻找“马上能赢”的位置，再拦住你马上能赢的位置，还会识别活三、冲四、双活三这类组合威胁。</p>
+        <p>AI 并不是随便落子：它会先寻找“马上能赢”的位置，再拦住你马上能赢的位置，还会提前识别活四、双四、四三、双活三和连续冲四这类必胜路线。</p>
       </article>
 
       <div class="score-panel" aria-label="比分">
@@ -440,7 +440,7 @@
       if (result.winner === HUMAN) {
         scores.human += 1;
         updateStatus("你赢了！", "这一步很精彩，可以复盘你制造了哪些威胁。");
-        explainEl.innerHTML = "<strong>复盘：</strong>你成功连成五子。想一想，AI 哪一步没有挡住你的关键路线？";
+        explainEl.innerHTML = "<strong>复盘：</strong>你成功连成五子。想一想，AI 哪一步没有提前发现你的关键路线？";
       } else if (result.winner === AI) {
         scores.ai += 1;
         updateStatus("AI 获胜", "观察它是如何先防守再反击的。");
@@ -490,6 +490,9 @@
       const blocking = findTacticalMove(HUMAN, candidates);
       if (blocking) return { ...blocking, reason: "你下一步可能连成五子，AI 必须优先封堵。" };
 
+      const preventive = findBestPreventiveMove(candidates);
+      if (preventive) return preventive;
+
       const urgentBlock = findBestThreatBlock(candidates);
       if (urgentBlock) return urgentBlock;
 
@@ -502,15 +505,17 @@
         const aiScore = evaluateBoard(AI);
         const humanAfter = evaluateBoard(HUMAN);
         const replyDanger = estimateHumanReply(move);
+        const safety = evaluateHumanDanger(0);
         board[move.row][move.col] = EMPTY;
         const centerBias = 18 - (Math.abs(move.row - 7) + Math.abs(move.col - 7));
-        const score = aiScore * 1.15 + humanAfter * 0.86 + centerBias * 7 - replyDanger * 0.92;
+        const forcedDanger = replyDanger >= 16000000 || safety.risk >= 16000000;
+        const score = aiScore * 1.15 + humanAfter * 0.86 + centerBias * 7 - replyDanger * 1.25 - safety.risk * 1.15 - (forcedDanger ? 65000000 : 0);
         if (!best || score > best.score) {
           best = {
             row: move.row,
             col: move.col,
             score,
-            reason: describeMove(move, aiScore, humanAfter, replyDanger),
+            reason: describeMove(move, aiScore, humanAfter, Math.max(replyDanger, safety.risk)),
           };
         }
       }
@@ -518,13 +523,19 @@
     }
 
     function findTacticalMove(player, candidates) {
+      const moves = findTacticalMoves(player, candidates);
+      return moves[0] || null;
+    }
+
+    function findTacticalMoves(player, candidates = getCandidateMoves(2)) {
+      const moves = [];
       for (const move of candidates) {
         board[move.row][move.col] = player;
         const win = Boolean(findWinner(player));
         board[move.row][move.col] = EMPTY;
-        if (win) return move;
+        if (win) moves.push(move);
       }
-      return null;
+      return moves;
     }
 
     function findBestThreatBlock(candidates) {
@@ -542,8 +553,94 @@
       return {
         row: best.row,
         col: best.col,
+        threat: best.threat,
+        profile: best.profile,
         reason: threatReason(best.profile),
       };
+    }
+
+    function findBestPreventiveMove(candidates) {
+      const currentDanger = evaluateHumanDanger(1);
+      const searchCandidates = focusedDefenseCandidates(candidates).slice(0, 18);
+      let best = null;
+      for (const move of searchCandidates) {
+        board[move.row][move.col] = AI;
+        const safety = evaluateHumanDanger(1);
+        const continuationRisk = currentDanger.risk >= 3500000 ? estimateContinuationRisk() : 0;
+        const aiProfile = analyzeThreatAt(move.row, move.col, AI);
+        const attackValue = threatSeverity(aiProfile) + scorePoint(move.row, move.col, AI);
+        const centerBias = 18 - (Math.abs(move.row - 7) + Math.abs(move.col - 7));
+        board[move.row][move.col] = EMPTY;
+        const totalRisk = safety.risk + continuationRisk;
+        const score = attackValue * 0.72 + centerBias * 1200 - totalRisk;
+        if (!best || totalRisk < best.totalRisk || (totalRisk === best.totalRisk && score > best.score)) {
+          best = { ...move, safety, continuationRisk, totalRisk, score, attackValue };
+        }
+      }
+      if (!best) return null;
+      const needsDefense = currentDanger.risk >= 900000 || best.safety.risk >= 16000000;
+      if (!needsDefense) return null;
+      return {
+        row: best.row,
+        col: best.col,
+        reason: preventiveReason(best.safety, currentDanger),
+      };
+    }
+
+    function focusedDefenseCandidates(candidates) {
+      return candidates.map((move) => {
+        board[move.row][move.col] = HUMAN;
+        const humanProfile = analyzeThreatAt(move.row, move.col, HUMAN);
+        if (findWinner(HUMAN)) humanProfile.win = true;
+        const humanThreat = threatSeverity(humanProfile) + scorePoint(move.row, move.col, HUMAN);
+        board[move.row][move.col] = EMPTY;
+        const aiValue = scorePoint(move.row, move.col, AI);
+        const centerBias = 18 - (Math.abs(move.row - 7) + Math.abs(move.col - 7));
+        return { ...move, priority: humanThreat * 1.5 + aiValue * 0.7 + centerBias * 500 };
+      }).sort((a, b) => b.priority - a.priority);
+    }
+
+    function estimateContinuationRisk() {
+      const humanMoves = findThreatMoves(HUMAN, getCandidateMoves(2), 3500000).slice(0, 3);
+      let worst = 0;
+      for (const humanMove of humanMoves) {
+        board[humanMove.row][humanMove.col] = HUMAN;
+        let risk = 0;
+        if (findWinner(HUMAN)) {
+          risk = 900000000;
+        } else {
+          const defense = chooseSimpleDefense();
+          if (defense) {
+            board[defense.row][defense.col] = AI;
+            const danger = evaluateHumanDanger(0);
+            risk = danger.risk;
+            if (danger.immediateWins.length > 0) risk += 260000000;
+            if (danger.unavoidableCount > 0) risk += 90000000;
+            board[defense.row][defense.col] = EMPTY;
+          } else {
+            risk = 500000000;
+          }
+        }
+        board[humanMove.row][humanMove.col] = EMPTY;
+        worst = Math.max(worst, risk);
+      }
+      return worst;
+    }
+
+    function chooseSimpleDefense() {
+      const candidates = getCandidateMoves(2);
+      const win = findTacticalMove(AI, candidates);
+      if (win) return win;
+      const block = findTacticalMove(HUMAN, candidates);
+      if (block) return block;
+      const threatBlock = findBestThreatBlock(candidates);
+      if (threatBlock) return threatBlock;
+      let best = null;
+      for (const move of candidates) {
+        const score = scorePoint(move.row, move.col, AI) + scorePoint(move.row, move.col, HUMAN) * 1.1;
+        if (!best || score > best.score) best = { ...move, score };
+      }
+      return best;
     }
 
     function findBestForcingMove(player, candidates) {
@@ -552,9 +649,12 @@
         board[move.row][move.col] = player;
         const profile = analyzeThreatAt(move.row, move.col, player);
         const threat = threatSeverity(profile) + scorePoint(move.row, move.col, player);
+        const replyDanger = player === AI ? estimateHumanReply(move) : 0;
+        const safety = player === AI ? evaluateHumanDanger(0) : { risk: 0 };
         board[move.row][move.col] = EMPTY;
-        if (threat >= 1600000 && (!best || threat > best.threat)) {
-          best = { ...move, threat, profile };
+        const safeThreat = threat - replyDanger * 1.2 - safety.risk * 1.2;
+        if (threat >= 1600000 && replyDanger < 30000000 && safety.risk < 30000000 && (!best || safeThreat > best.safeThreat)) {
+          best = { ...move, threat, safeThreat, profile };
         }
       }
       if (!best) return null;
@@ -579,11 +679,104 @@
       return danger;
     }
 
+    function evaluateHumanDanger(depth = 0) {
+      const candidates = getCandidateMoves(2);
+      const immediateWins = findTacticalMoves(HUMAN, candidates);
+      const threats = findThreatMoves(HUMAN, candidates, 45000);
+      const strongest = threats[0];
+      const unavoidable = threats.filter(item => isUnavoidableThreat(item.profile));
+      const strongThreats = threats.filter(item => item.profile.simpleFour >= 1 || item.profile.openThree >= 1);
+      const forced = depth > 0 && hasThreatSequence(HUMAN, AI, depth);
+      let risk = strongest ? strongest.threat : 0;
+      if (immediateWins.length > 0) risk += immediateWins.length * 220000000;
+      if (unavoidable.length > 0) risk += unavoidable.length * 90000000;
+      if (strongThreats.length > 1) risk += (strongThreats.length - 1) * 12000000;
+      if (forced) risk += 180000000;
+      return {
+        risk,
+        forced,
+        immediateWins,
+        strongest,
+        unavoidableCount: unavoidable.length,
+        strongCount: strongThreats.length,
+      };
+    }
+
+    function findThreatMoves(player, candidates = getCandidateMoves(2), minThreat = 900000) {
+      const moves = [];
+      for (const move of candidates) {
+        board[move.row][move.col] = player;
+        const profile = analyzeThreatAt(move.row, move.col, player);
+        if (findWinner(player)) profile.win = true;
+        const threat = threatSeverity(profile) + scorePoint(move.row, move.col, player);
+        board[move.row][move.col] = EMPTY;
+        if (threat >= minThreat) moves.push({ ...move, profile, threat });
+      }
+      return moves.sort((a, b) => b.threat - a.threat);
+    }
+
+    function isUnavoidableThreat(profile) {
+      return profile.win
+        || profile.openFour > 0
+        || profile.simpleFour >= 2
+        || (profile.simpleFour >= 1 && profile.openThree >= 1)
+        || profile.openThree >= 2;
+    }
+
+    function hasThreatSequence(attacker, defender, depth) {
+      const wins = findTacticalMoves(attacker, getCandidateMoves(1));
+      if (wins.length > 0) return true;
+      if (depth <= 0) return false;
+      const minAttack = depth > 1 ? 900000 : 3500000;
+      const attacks = findThreatMoves(attacker, getCandidateMoves(2), minAttack).slice(0, 4);
+      for (const attack of attacks) {
+        board[attack.row][attack.col] = attacker;
+        const directWins = findTacticalMoves(attacker, getCandidateMoves(1));
+        let forced = Boolean(findWinner(attacker)) || directWins.length >= 2 || isUnavoidableThreat(attack.profile);
+        if (!forced) {
+          const defenses = getDefenseMoves(attacker, defender, directWins).slice(0, 5);
+          forced = defenses.length > 0 && defenses.every((defense) => {
+            board[defense.row][defense.col] = defender;
+            const defenderWins = Boolean(findWinner(defender));
+            const stillForced = !defenderWins && hasThreatSequence(attacker, defender, depth - 1);
+            board[defense.row][defense.col] = EMPTY;
+            return stillForced;
+          });
+        }
+        board[attack.row][attack.col] = EMPTY;
+        if (forced) return true;
+      }
+      return false;
+    }
+
+    function getDefenseMoves(attacker, defender, directWins) {
+      const moves = new Map();
+      const add = (move) => {
+        if (!move || board[move.row][move.col] !== EMPTY) return;
+        moves.set(`${move.row},${move.col}`, { row: move.row, col: move.col });
+      };
+      directWins.forEach(add);
+      findTacticalMoves(defender, getCandidateMoves(1)).forEach(add);
+      findThreatMoves(attacker, getCandidateMoves(2), 3500000).slice(0, 4).forEach(add);
+      findThreatMoves(defender, getCandidateMoves(2), 3500000).slice(0, 2).forEach(add);
+      return Array.from(moves.values());
+    }
+
     function describeMove(move, aiScore, humanScore, replyDanger) {
       if (aiScore > humanScore * 1.18) return "AI 选择扩大自己的连续棋形，准备制造下一轮威胁。";
+      if (replyDanger > 16000000) return "AI 提前看到了你的必胜路线，所以先把关键点占住。";
       if (replyDanger > 1200000) return "AI 预判到你可能形成双向威胁，所以把棋落在更安全的位置。";
       if (replyDanger > 18000) return "AI 预判到你可能形成强攻，所以把棋落在更安全的位置。";
       return "AI 选择同时兼顾进攻和防守的位置，让多个方向保持连接。";
+    }
+
+    function preventiveReason(safety, currentDanger) {
+      if (currentDanger.immediateWins.length > 1 || safety.immediateWins.length > 1) return "你已经形成多个连五入口，AI 选择先堵最危险的路线。";
+      if (currentDanger.immediateWins.length > 0 || safety.immediateWins.length > 0) return "你下一手可能直接连成五子，AI 必须先封住。";
+      if (currentDanger.forced || safety.forced) return "AI 看到了连续冲四的进攻链，先切断关键连接点。";
+      if (currentDanger.unavoidableCount > 0 || safety.unavoidableCount > 0) return "AI 提前防住活四、双四或双活三，避免你形成一步挡不完的局面。";
+      if (currentDanger.strongCount > 1 || safety.strongCount > 1) return "AI 发现你有多个方向可以继续进攻，先压住最危险的交叉点。";
+      return "AI 先把你的潜在强攻点占住，避免后面被连续威胁牵着走。";
     }
 
     function analyzeThreatAt(row, col, player) {
@@ -795,8 +988,8 @@
       thinking = false;
       lastMove = null;
       winningLine = [];
-      updateStatus("轮到你落子", "黑棋先手，连成五子获胜。");
-      explainEl.innerHTML = "<strong>挑战开始：</strong>请在棋盘上落下黑子，AI 会马上回应。";
+      updateStatus("轮到你落子", "黑棋先手，AI 会提前防住关键路线。");
+      explainEl.innerHTML = "<strong>挑战开始：</strong>请在棋盘上落下黑子，观察 AI 如何防守和反击。";
       setThinking(false);
       render();
     }
@@ -818,7 +1011,7 @@
       const candidates = getCandidateMoves();
       const winning = findTacticalMove(HUMAN, candidates);
       if (winning) {
-        explainEl.innerHTML = `<strong>提示：</strong>第 ${winning.row + 1} 行第 ${winning.col + 1} 列有机会直接连成五子。`;
+        explainEl.innerHTML = `<strong>提示：</strong>第 ${winning.row + 1} 行第 ${winning.col + 1} 列已经是很强的胜利点，AI 通常会优先防住这一类路线。`;
         return;
       }
       let best = null;
@@ -826,10 +1019,15 @@
         board[move.row][move.col] = HUMAN;
         const profile = analyzeThreatAt(move.row, move.col, HUMAN);
         const score = threatSeverity(profile) + scorePoint(move.row, move.col, HUMAN);
+        const blocked = isUnavoidableHumanThreat(profile);
         board[move.row][move.col] = EMPTY;
-        if (!best || score > best.score) best = { ...move, score };
+        if (!best || (best.blocked && !blocked) || (best.blocked === blocked && score > best.score)) best = { ...move, score, blocked };
       }
-      if (best) explainEl.innerHTML = `<strong>提示：</strong>可以观察第 ${best.row + 1} 行第 ${best.col + 1} 列，它可能帮你形成更长的连续棋形。`;
+      if (best && best.blocked) {
+        explainEl.innerHTML = `<strong>提示：</strong>第 ${best.row + 1} 行第 ${best.col + 1} 列会形成强威胁，AI 大概率会提前防守。你可以尝试用多个方向牵制它。`;
+      } else if (best) {
+        explainEl.innerHTML = `<strong>提示：</strong>可以观察第 ${best.row + 1} 行第 ${best.col + 1} 列，它可能帮你形成更长的连续棋形。`;
+      }
     }
 
     function inside(row, col) {
