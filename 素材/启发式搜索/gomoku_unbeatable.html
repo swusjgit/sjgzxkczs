@@ -161,6 +161,106 @@
       justify-content: flex-end;
     }
 
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .choice-panel {
+      width: min(100%, 650px);
+      display: grid;
+      gap: 20px;
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06)),
+        rgba(15, 23, 42, 0.24);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .choice-kicker {
+      width: fit-content;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(15, 118, 110, 0.22);
+      color: #d1fae5;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .choice-panel h2 {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .choice-panel p {
+      margin: 0;
+      color: #dbe5f0;
+      line-height: 1.75;
+      font-weight: 650;
+    }
+
+    .choice-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .choice-option {
+      height: auto;
+      min-height: 142px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      padding: 18px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.11);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .choice-option strong {
+      color: #fff;
+      font-size: 22px;
+    }
+
+    .choice-option small {
+      color: #cbd5e1;
+      line-height: 1.6;
+      font-weight: 700;
+    }
+
+    .choice-option.active {
+      border-color: rgba(252, 211, 77, 0.72);
+      background: rgba(160, 43, 37, 0.34);
+    }
+
+    .choice-note {
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: #dbe5f0;
+      background: rgba(255, 255, 255, 0.08);
+      line-height: 1.65;
+    }
+
+    .play-area {
+      width: min(100%, 650px);
+      display: grid;
+      gap: 14px;
+      justify-items: center;
+    }
+
     button {
       height: 38px;
       border: 1px solid rgba(255, 255, 255, 0.18);
@@ -303,6 +403,9 @@
       .board-wrap { padding: 12px; }
       .topbar { align-items: stretch; flex-direction: column; }
       .actions { justify-content: flex-start; }
+      .controls { justify-content: flex-start; }
+      .choice-panel { padding: 20px; }
+      .choice-options { grid-template-columns: 1fr; }
       .score-panel { grid-template-columns: 1fr 1fr 1fr; }
       .score { padding: 11px; }
     }
@@ -313,11 +416,11 @@
     <section class="intro" aria-label="游戏说明">
       <div class="badge">AI 博弈 · 搜索策略 · 评价函数</div>
       <h1>不可战胜<span>五子棋 AI</span></h1>
-      <p class="lead">你执黑先手，AI 执白后手。试着寻找连续威胁，同时观察 AI 如何判断棋形、封堵路线、寻找反击机会。</p>
+      <p class="lead">你可以选择先手或后手。试着寻找连续威胁，同时观察 AI 如何判断棋形、封堵路线、寻找反击机会。</p>
 
       <article class="thinking-card">
         <h2>思考</h2>
-        <p>AI 并不是随便落子：它会先寻找“马上能赢”的位置，再拦住你马上能赢的位置，还会提前识别活四、双四、四三、双活三和连续冲四这类必胜路线。</p>
+        <p>AI 并不是随便落子：它会先寻找“马上能赢”的位置，再拦住你马上能赢的位置。AI 先手时会启用更深的防守搜索，提前识别活四、双四、四三、双活三和连续冲四这类必胜路线。</p>
       </article>
 
       <div class="score-panel" aria-label="比分">
@@ -327,25 +430,45 @@
       </div>
     </section>
 
-    <section class="game" aria-label="五子棋棋盘">
-      <div class="topbar">
-        <div class="status" id="status">
-          轮到你落子
-          <small id="subStatus">黑棋先手，连成五子获胜。</small>
+    <section class="game" aria-label="五子棋游戏">
+      <section class="choice-panel" id="choicePanel" aria-label="选择先后手">
+        <div class="choice-kicker">开始前先选择</div>
+        <h2>你想先手还是后手？</h2>
+        <p>先手更主动，适合练习制造威胁；后手要面对 AI 的黑棋开局，更适合挑战防守和反击。</p>
+        <div class="choice-options">
+          <button class="choice-option active" id="humanFirstBtn" type="button" aria-pressed="true">
+            <strong>我要先手</strong>
+            <small>你执黑先下，主动尝试做出连续威胁。</small>
+          </button>
+          <button class="choice-option" id="aiFirstBtn" type="button" aria-pressed="false">
+            <strong>我要后手</strong>
+            <small>AI 执黑先下，进入无敌挑战模式，你执白应对它的开局。</small>
+          </button>
         </div>
-        <div class="actions">
-          <button class="secondary" id="hintBtn">AI 提示</button>
-          <button id="undoBtn">悔一步</button>
-          <button class="primary" id="resetBtn">重新开始</button>
+        <div class="choice-note">选择后进入棋盘。想换模式时，可以在游戏中点击“重选先后手”。</div>
+      </section>
+
+      <div class="play-area hidden" id="playArea">
+        <div class="topbar">
+          <div class="status" id="status">
+            轮到你落子
+            <small id="subStatus">黑棋先手，连成五子获胜。</small>
+          </div>
+          <div class="actions">
+            <button class="secondary" id="hintBtn">AI 提示</button>
+            <button id="undoBtn">悔一步</button>
+            <button id="choiceBackBtn">重选先后手</button>
+            <button class="primary" id="resetBtn">重新开始</button>
+          </div>
         </div>
-      </div>
 
-      <div class="board-wrap">
-        <div class="board" id="board" role="grid" aria-label="15 乘 15 五子棋棋盘"></div>
-      </div>
+        <div class="board-wrap">
+          <div class="board" id="board" role="grid" aria-label="15 乘 15 五子棋棋盘"></div>
+        </div>
 
-      <div class="explain" id="explain">
-        <strong>挑战开始：</strong>请在棋盘上落下黑子，AI 会马上回应。
+        <div class="explain" id="explain">
+          <strong>挑战开始：</strong>请在棋盘上落下黑子，AI 会马上回应。
+        </div>
       </div>
     </section>
   </main>
@@ -363,12 +486,17 @@
     ];
 
     const boardEl = document.getElementById("board");
+    const choicePanelEl = document.getElementById("choicePanel");
+    const playAreaEl = document.getElementById("playArea");
     const statusEl = document.getElementById("status");
     const subStatusEl = document.getElementById("subStatus");
     const explainEl = document.getElementById("explain");
     const resetBtn = document.getElementById("resetBtn");
     const undoBtn = document.getElementById("undoBtn");
     const hintBtn = document.getElementById("hintBtn");
+    const choiceBackBtn = document.getElementById("choiceBackBtn");
+    const humanFirstBtn = document.getElementById("humanFirstBtn");
+    const aiFirstBtn = document.getElementById("aiFirstBtn");
     const scoreEls = {
       human: document.getElementById("humanScore"),
       ai: document.getElementById("aiScore"),
@@ -383,6 +511,8 @@
     let lastMove = null;
     let winningLine = [];
     let scores = { human: 0, ai: 0, draw: 0 };
+    let humanFirst = true;
+    let modeChosen = false;
 
     function createBoard() {
       return Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
@@ -408,7 +538,7 @@
     }
 
     function handleHumanMove(row, col) {
-      if (thinking || gameOver || board[row][col] !== EMPTY) return;
+      if (!modeChosen || thinking || gameOver || board[row][col] !== EMPTY) return;
       placeMove(row, col, HUMAN);
       if (finishIfNeeded(HUMAN)) return;
       setThinking(true);
@@ -420,7 +550,7 @@
           explainEl.innerHTML = `<strong>AI 落子：</strong>${move.reason}`;
         }
         setThinking(false);
-        if (!finishIfNeeded(AI)) updateStatus("轮到你落子", "小心四连、活三和双向威胁。");
+        if (!finishIfNeeded(AI)) updateStatus("轮到你落子", turnHint());
       }, 260);
     }
 
@@ -481,8 +611,13 @@
     }
 
     function chooseAiMove() {
-      const candidates = getCandidateMoves();
+      const candidates = getCandidateMoves(engineRadius());
       if (!candidates.length) return { row: 7, col: 7, reason: "中心位置能连接更多方向，适合作为开局点。" };
+
+      if (!humanFirst) {
+        const noLoseMove = chooseNoLoseAiMove(candidates);
+        if (noLoseMove) return noLoseMove;
+      }
 
       const winning = findTacticalMove(AI, candidates);
       if (winning) return { ...winning, reason: "这里可以马上连成五子，所以 AI 直接完成进攻。" };
@@ -522,9 +657,93 @@
       return best;
     }
 
+    function chooseNoLoseAiMove(candidates) {
+      const winning = findTacticalMove(AI, candidates);
+      if (winning) return { ...winning, reason: "这里可以马上连成五子，所以 AI 直接完成进攻。" };
+
+      const searchCandidates = focusedEngineCandidates(candidates).slice(0, 10);
+      let best = null;
+      for (const move of searchCandidates) {
+        board[move.row][move.col] = AI;
+        const risk = findWinner(AI) ? -900000000 : humanSearchRisk(1);
+        const aiProfile = analyzeThreatAt(move.row, move.col, AI);
+        const attack = threatSeverity(aiProfile) + scorePoint(move.row, move.col, AI);
+        const centerBias = 18 - (Math.abs(move.row - 7) + Math.abs(move.col - 7));
+        const score = attack * 0.84 + centerBias * 1600 - risk;
+        board[move.row][move.col] = EMPTY;
+        if (!best || risk < best.risk || (risk === best.risk && score > best.score)) {
+          best = { ...move, risk, score, attack };
+        }
+      }
+      if (!best) return null;
+      return {
+        row: best.row,
+        col: best.col,
+        reason: best.risk >= 900000000
+          ? "AI 选择风险最低的位置，先压住你的连续威胁。"
+          : "AI 提前推演了你的下一轮强攻，先把最危险的路线切断。",
+      };
+    }
+
+    function focusedEngineCandidates(candidates) {
+      return candidates.map((move) => {
+        board[move.row][move.col] = HUMAN;
+        const humanProfile = analyzeThreatAt(move.row, move.col, HUMAN);
+        if (findWinner(HUMAN)) humanProfile.win = true;
+        const humanThreat = threatSeverity(humanProfile) + scorePoint(move.row, move.col, HUMAN);
+        board[move.row][move.col] = EMPTY;
+
+        board[move.row][move.col] = AI;
+        const aiProfile = analyzeThreatAt(move.row, move.col, AI);
+        if (findWinner(AI)) aiProfile.win = true;
+        const aiThreat = threatSeverity(aiProfile) + scorePoint(move.row, move.col, AI);
+        board[move.row][move.col] = EMPTY;
+
+        const centerBias = 18 - (Math.abs(move.row - 7) + Math.abs(move.col - 7));
+        return { ...move, priority: humanThreat * 2.4 + aiThreat * 1.6 + centerBias * 1200 };
+      }).sort((a, b) => b.priority - a.priority);
+    }
+
+    function humanSearchRisk(depth) {
+      const immediateWins = findTacticalMoves(HUMAN, getCandidateMoves(engineRadius()));
+      if (immediateWins.length > 0) return 900000000 + immediateWins.length * 120000000;
+
+      const baseDanger = evaluateHumanDanger(0).risk;
+      if (depth <= 0) return baseDanger;
+
+      const humanMoves = findThreatMoves(HUMAN, getCandidateMoves(engineRadius()), 45000).slice(0, 4);
+      if (!humanMoves.length) return baseDanger;
+
+      let worstRisk = baseDanger;
+      for (const humanMove of humanMoves) {
+        board[humanMove.row][humanMove.col] = HUMAN;
+        let branchRisk = 0;
+        if (findWinner(HUMAN)) {
+          branchRisk = 1000000000;
+        } else {
+          const defenses = focusedEngineCandidates(getCandidateMoves(engineRadius())).slice(0, 5);
+          let bestDefenseRisk = Infinity;
+          for (const defense of defenses) {
+            board[defense.row][defense.col] = AI;
+            const defenseRisk = findWinner(AI) ? -900000000 : humanSearchRisk(depth - 1);
+            board[defense.row][defense.col] = EMPTY;
+            bestDefenseRisk = Math.min(bestDefenseRisk, defenseRisk);
+          }
+          branchRisk = bestDefenseRisk;
+        }
+        board[humanMove.row][humanMove.col] = EMPTY;
+        worstRisk = Math.max(worstRisk, branchRisk);
+      }
+      return worstRisk;
+    }
+
     function findTacticalMove(player, candidates) {
       const moves = findTacticalMoves(player, candidates);
       return moves[0] || null;
+    }
+
+    function engineRadius() {
+      return !humanFirst ? 3 : 2;
     }
 
     function findTacticalMoves(player, candidates = getCandidateMoves(2)) {
@@ -790,13 +1009,85 @@
       for (const [dr, dc] of DIRECTIONS) {
         const line = lineString(row, col, dr, dc, player);
         const flags = lineThreatFlags(line);
-        if (flags.win) profile.win = true;
-        if (flags.openFour) profile.openFour += 1;
-        if (flags.simpleFour) profile.simpleFour += 1;
-        if (flags.openThree) profile.openThree += 1;
-        if (flags.liveTwo) profile.liveTwo += 1;
+        const direction = analyzeDirectionThreat(row, col, dr, dc, player);
+        if (flags.win || direction.win) profile.win = true;
+        if (flags.openFour || direction.winSlots >= 2) profile.openFour += 1;
+        if (flags.simpleFour || direction.winSlots >= 1) profile.simpleFour += 1;
+        if (flags.openThree || direction.openFourSlots >= 1) profile.openThree += 1;
+        if (flags.liveTwo || direction.simpleFourSlots >= 2 || direction.openThreeSlots >= 1) profile.liveTwo += 1;
       }
       return profile;
+    }
+
+    function analyzeDirectionThreat(row, col, dr, dc, player) {
+      const winSlots = countWinningSlots(row, col, dr, dc, player);
+      let openFourSlots = 0;
+      let simpleFourSlots = 0;
+      let openThreeSlots = 0;
+      for (let step = -4; step <= 4; step += 1) {
+        const r = row + dr * step;
+        const c = col + dc * step;
+        if (!inside(r, c) || board[r][c] !== EMPTY) continue;
+        board[r][c] = player;
+        const nextWinSlots = countWinningSlots(r, c, dr, dc, player);
+        if (nextWinSlots >= 2) openFourSlots += 1;
+        if (nextWinSlots >= 1) simpleFourSlots += 1;
+        const nextOpenFourSlots = countOpenFourSlots(r, c, dr, dc, player);
+        if (nextOpenFourSlots >= 1) openThreeSlots += 1;
+        board[r][c] = EMPTY;
+      }
+      return {
+        win: hasFiveInDirection(row, col, dr, dc, player),
+        winSlots,
+        openFourSlots,
+        simpleFourSlots,
+        openThreeSlots,
+      };
+    }
+
+    function countWinningSlots(row, col, dr, dc, player) {
+      let count = 0;
+      for (let step = -4; step <= 4; step += 1) {
+        const r = row + dr * step;
+        const c = col + dc * step;
+        if (!inside(r, c) || board[r][c] !== EMPTY) continue;
+        board[r][c] = player;
+        if (hasFiveInDirection(r, c, dr, dc, player)) count += 1;
+        board[r][c] = EMPTY;
+      }
+      return count;
+    }
+
+    function countOpenFourSlots(row, col, dr, dc, player) {
+      let count = 0;
+      for (let step = -4; step <= 4; step += 1) {
+        const r = row + dr * step;
+        const c = col + dc * step;
+        if (!inside(r, c) || board[r][c] !== EMPTY) continue;
+        board[r][c] = player;
+        if (countWinningSlots(r, c, dr, dc, player) >= 2) count += 1;
+        board[r][c] = EMPTY;
+      }
+      return count;
+    }
+
+    function hasFiveInDirection(row, col, dr, dc, player) {
+      let count = 1;
+      count += countDirectionStones(row, col, dr, dc, player);
+      count += countDirectionStones(row, col, -dr, -dc, player);
+      return count >= 5;
+    }
+
+    function countDirectionStones(row, col, dr, dc, player) {
+      let count = 0;
+      let r = row + dr;
+      let c = col + dc;
+      while (inside(r, c) && board[r][c] === player) {
+        count += 1;
+        r += dr;
+        c += dc;
+      }
+      return count;
     }
 
     function lineString(row, col, dr, dc, player) {
@@ -951,7 +1242,7 @@
         const isLast = lastMove && lastMove.row === row && lastMove.col === col;
         const isWin = winningLine.some((item) => item.row === row && item.col === col);
         cell.innerHTML = value
-          ? `<span class="stone ${value === HUMAN ? "black" : "white"} ${isLast ? "last" : ""} ${isWin ? "win" : ""}"></span>`
+          ? `<span class="stone ${stoneClass(value)} ${isLast ? "last" : ""} ${isWin ? "win" : ""}"></span>`
           : "";
         cell.disabled = thinking || gameOver || value !== EMPTY;
         cell.setAttribute("aria-label", cellLabel(row, col, value));
@@ -959,8 +1250,39 @@
     }
 
     function cellLabel(row, col, value) {
-      const text = value === HUMAN ? "黑子" : value === AI ? "白子" : "空位";
+      const text = value === HUMAN ? humanStoneName() : value === AI ? aiStoneName() : "空位";
       return `第 ${row + 1} 行，第 ${col + 1} 列，${text}`;
+    }
+
+    function stoneClass(value) {
+      if (value === HUMAN) return humanFirst ? "black" : "white";
+      if (value === AI) return humanFirst ? "white" : "black";
+      return "";
+    }
+
+    function humanStoneName() {
+      return humanFirst ? "黑子" : "白子";
+    }
+
+    function aiStoneName() {
+      return humanFirst ? "白子" : "黑子";
+    }
+
+    function turnHint() {
+      return humanFirst ? "你执黑先手，小心四连、活三和双向威胁。" : "你执白后手，重点观察 AI 的先手布局。";
+    }
+
+    function openingText() {
+      return humanFirst
+        ? "<strong>挑战开始：</strong>你执黑先手，请在棋盘上落下黑子，AI 会马上回应。"
+        : "<strong>AI 先手：</strong>AI 执黑先手，已经占住中心。你执白后手，尝试防守和反击。";
+    }
+
+    function syncModeButtons() {
+      humanFirstBtn.classList.toggle("active", humanFirst);
+      aiFirstBtn.classList.toggle("active", !humanFirst);
+      humanFirstBtn.setAttribute("aria-pressed", String(humanFirst));
+      aiFirstBtn.setAttribute("aria-pressed", String(!humanFirst));
     }
 
     function updateStatus(main, sub) {
@@ -978,7 +1300,32 @@
       resetBtn.disabled = value;
       undoBtn.disabled = value || history.length < 2 || gameOver;
       hintBtn.disabled = value || gameOver;
+      choiceBackBtn.disabled = value;
       render();
+    }
+
+    function showChoiceScreen() {
+      modeChosen = false;
+      board = createBoard();
+      history = [];
+      gameOver = false;
+      thinking = false;
+      lastMove = null;
+      winningLine = [];
+      choicePanelEl.classList.remove("hidden");
+      playAreaEl.classList.add("hidden");
+      syncModeButtons();
+      setThinking(false);
+      render();
+    }
+
+    function startGame(nextHumanFirst) {
+      if (thinking) return;
+      humanFirst = nextHumanFirst;
+      modeChosen = true;
+      choicePanelEl.classList.add("hidden");
+      playAreaEl.classList.remove("hidden");
+      resetGame();
     }
 
     function resetGame() {
@@ -988,14 +1335,23 @@
       thinking = false;
       lastMove = null;
       winningLine = [];
-      updateStatus("轮到你落子", "黑棋先手，AI 会提前防住关键路线。");
-      explainEl.innerHTML = "<strong>挑战开始：</strong>请在棋盘上落下黑子，观察 AI 如何防守和反击。";
+      modeChosen = true;
+      syncModeButtons();
+      updateStatus("轮到你落子", turnHint());
+      explainEl.innerHTML = openingText();
       setThinking(false);
+      if (!humanFirst) {
+        const opening = chooseAiMove();
+        if (opening) {
+          placeMove(opening.row, opening.col, AI);
+          updateStatus("轮到你落子", turnHint());
+        }
+      }
       render();
     }
 
     function undoPair() {
-      if (thinking || history.length < 2 || gameOver) return;
+      if (!modeChosen || thinking || history.length < 2 || gameOver) return;
       for (let i = 0; i < 2; i += 1) {
         const move = history.pop();
         if (move) board[move.row][move.col] = EMPTY;
@@ -1007,7 +1363,7 @@
     }
 
     function showHint() {
-      if (thinking || gameOver) return;
+      if (!modeChosen || thinking || gameOver) return;
       const candidates = getCandidateMoves();
       const winning = findTacticalMove(HUMAN, candidates);
       if (winning) {
@@ -1035,10 +1391,13 @@
     }
 
     setupBoard();
-    resetGame();
+    showChoiceScreen();
     resetBtn.addEventListener("click", resetGame);
     undoBtn.addEventListener("click", undoPair);
     hintBtn.addEventListener("click", showHint);
+    choiceBackBtn.addEventListener("click", showChoiceScreen);
+    humanFirstBtn.addEventListener("click", () => startGame(true));
+    aiFirstBtn.addEventListener("click", () => startGame(false));
   </script>
 </body>
 </html>
