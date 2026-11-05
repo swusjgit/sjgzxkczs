@@ -236,6 +236,8 @@ function renderHome() {
         })}
       </section>
 
+      ${renderHomeExperiment()}
+
       <section class="home-main">
         <article class="panel">
           <div class="panel-header">
@@ -250,6 +252,15 @@ function renderHome() {
 
       ${renderAiToolLinks()}
     </div>
+  `;
+}
+
+function renderHomeExperiment() {
+  return `
+    <a class="home-experiment" href="素材/图灵测试/图灵测试.html" target="_blank" rel="noreferrer" aria-labelledby="experiment-title">
+      <h2 id="experiment-title">图灵测试</h2>
+      <span class="quick-arrow" aria-hidden="true">→</span>
+    </a>
   `;
 }
 

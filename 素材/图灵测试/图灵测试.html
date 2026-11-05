@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图灵测试实验室 v2.1 | Turing Test Lab</title>
+    <link rel="stylesheet" href="turing-utilities.css" />
+    <script src="anime-3.2.1.js"></script>
+    <style>
+        body {
+            background-color: #050505;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(0, 243, 255, 0.3);
+            opacity: 0.6;
+            animation: scan 3s linear infinite;
+            pointer-events: none;
+            z-index: 50;
+        }
+        @keyframes scan {
+            0% { top: -5%; }
+            100% { top: 105%; }
+        }
+        .glitch-text {
+            position: relative;
+        }
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -1px 0 #ff00ff;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -1px 0 #00f3ff;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(12px, 9999px, 32px, 0); }
+            20% { clip: rect(65px, 9999px, 89px, 0); }
+            40% { clip: rect(23px, 9999px, 12px, 0); }
+            60% { clip: rect(87px, 9999px, 54px, 0); }
+            80% { clip: rect(4px, 9999px, 23px, 0); }
+            100% { clip: rect(56px, 9999px, 12px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(65px, 9999px, 12px, 0); }
+            20% { clip: rect(12px, 9999px, 5px, 0); }
+            40% { clip: rect(87px, 9999px, 32px, 0); }
+            60% { clip: rect(4px, 9999px, 65px, 0); }
+            80% { clip: rect(23px, 9999px, 12px, 0); }
+            100% { clip: rect(9px, 9999px, 87px, 0); }
+        }
+        .glass-panel {
+            background: rgba(10, 15, 30, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+        .option-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+            border-color: #00f3ff;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        }
+        .option-card.selected {
+            border-color: #00f3ff;
+            background: rgba(0, 243, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
+        .mode-card {
+            transition: all 0.3s ease;
+        }
+        .mode-card:hover {
+            transform: scale(1.02);
+        }
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00f3ff;
+            border-radius: 4px;
+        }
+        .course-return {
+            display: block;
+            width: fit-content;
+            margin: 24px auto 0;
+            color: #d1d5db;
+            font-size: 14px;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+        .course-return:hover,
+        .course-return:focus-visible {
+            color: #ffffff;
+        }
+        @media (max-width: 480px) {
+            .lab-status {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="scan-line"></div>
+
+    <nav class="fixed top-0 w-full z-40 p-4 flex justify-between items-center glass-panel border-b border-white/10">
+        <div class="flex items-center gap-2">
+            <div class="w-3 h-3 bg-cyber-blue rounded-full animate-pulse"></div>
+            <span class="text-cyber-blue font-mono font-bold tracking-wider hidden md:inline">TURING_LAB_v2.1</span>
+            <span class="text-cyber-blue font-mono font-bold tracking-wider md:hidden">TURING_LAB</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="game.toggleArchives()" class="text-xs md:text-sm font-mono text-cyber-blue hover:text-white transition-colors border border-cyber-blue/30 px-3 py-1 rounded">
+                📂 图灵档案 / ARCHIVES
+            </button>
+            <div class="lab-status font-mono text-xs md:text-sm text-gray-400">
+                STATUS: <span class="text-green-400">ONLINE</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="w-full max-w-5xl z-10 mt-20 mb-8 relative">
+        
+        <section id="welcome-screen" class="glass-panel rounded-2xl p-8 md:p-12 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyber-blue to-transparent"></div>
+            
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 text-white glitch-text" data-text="图灵测试">图灵测试</h1>
+            <p class="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+                欢迎来到人类与人工智能的边界。<br>
+                请选择你的测试任务模式：
+            </p>
+            
+            <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                <button onclick="game.start('find_human')" class="mode-card group relative p-8 bg-gray-900/50 border border-cyber-green/30 hover:border-cyber-green rounded-xl text-left overflow-hidden">
+                    <div class="absolute inset-0 bg-cyber-green/5 group-hover:bg-cyber-green/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="text-4xl mb-4">🧠</div>
+                        <h3 class="text-2xl font-bold text-cyber-green mb-2">寻找人类</h3>
+                        <p class="text-gray-400 text-sm">Find Human</p>
+                        <div class="mt-4 text-xs text-gray-500 font-mono">
+                            MISSION: 识别真实的人类回答<br>
+                            DIFFICULTY: ★★★☆☆
+                        </div>
+                    </div>
+                </button>
+
+                <button onclick="game.start('find_ai')" class="mode-card group relative p-8 bg-gray-900/50 border border-cyber-pink/30 hover:border-cyber-pink rounded-xl text-left overflow-hidden">
+                    <div class="absolute inset-0 bg-cyber-pink/5 group-hover:bg-cyber-pink/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="text-4xl mb-4">🤖</div>
+                        <h3 class="text-2xl font-bold text-cyber-pink mb-2">寻找 AI</h3>
+                        <p class="text-gray-400 text-sm">Find Artificial Intelligence</p>
+                        <div class="mt-4 text-xs text-gray-500 font-mono">
+                            MISSION: 揪出伪装的机器程序<br>
+                            DIFFICULTY: ★★★★☆
+                        </div>
+                    </div>
+                </button>
+            </div>
+            
+            <div class="mt-12 text-xs text-gray-500 font-mono">
+                SYSTEM_READY... SELECT_MODE_TO_INITIATE...
+            </div>
+        </section>
+
+        <section id="game-screen" class="hidden">
+            <div class="flex flex-wrap justify-between items-end mb-4 px-2 gap-4">
+                <div class="text-cyber-blue font-mono text-xl">
+                    Q: <span id="current-q">01</span>/10
+                </div>
+                <div class="flex gap-6 font-mono text-sm">
+                    <div class="text-gray-400">
+                        MODE: <span id="mode-display" class="text-white font-bold">-</span>
+                    </div>
+                    <div class="text-gray-400">
+                        ACCURACY: <span id="accuracy-display" class="text-cyber-green font-bold">0%</span>
+                    </div>
+                    <div class="text-gray-400">
+                        SCORE: <span id="score-display" class="text-white font-bold">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="w-full h-1 bg-gray-800 rounded-full mb-8 overflow-hidden">
+                <div id="progress-bar" class="h-full bg-gradient-to-r from-cyber-blue to-cyber-pink w-0 transition-all duration-500"></div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-6 md:p-8 mb-6 border-l-4 border-cyber-blue">
+                <div class="text-xs text-cyber-blue font-mono mb-2 uppercase tracking-widest">Interrogator / 提问者</div>
+                <h2 id="question-text" class="text-2xl md:text-3xl font-bold text-white leading-snug">加载中...</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div id="option-a" onclick="game.selectOption('A')" class="option-card cursor-pointer glass-panel rounded-xl p-6 relative group">
+                    <div class="absolute top-4 left-4 w-8 h-8 rounded-full border border-gray-500 flex items-center justify-center text-gray-400 font-mono group-hover:border-cyber-blue group-hover:text-cyber-blue transition-colors">A</div>
+                    <div class="mt-8 text-lg text-gray-200 leading-relaxed" id="text-a">...</div>
+                    <div class="selection-indicator absolute inset-0 border-2 border-cyber-blue rounded-xl opacity-0 transition-opacity pointer-events-none"></div>
+                </div>
+
+                <div id="option-b" onclick="game.selectOption('B')" class="option-card cursor-pointer glass-panel rounded-xl p-6 relative group">
+                    <div class="absolute top-4 left-4 w-8 h-8 rounded-full border border-gray-500 flex items-center justify-center text-gray-400 font-mono group-hover:border-cyber-blue group-hover:text-cyber-blue transition-colors">B</div>
+                    <div class="mt-8 text-lg text-gray-200 leading-relaxed" id="text-b">...</div>
+                    <div class="selection-indicator absolute inset-0 border-2 border-cyber-blue rounded-xl opacity-0 transition-opacity pointer-events-none"></div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center">
+                <button id="submit-btn" onclick="game.submitAnswer()" disabled class="px-12 py-3 bg-gray-700 text-gray-400 rounded-lg font-bold cursor-not-allowed transition-all duration-300">
+                    确认选择 / CONFIRM
+                </button>
+            </div>
+        </section>
+
+        <div id="feedback-overlay" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+            <div class="glass-panel max-w-2xl w-full rounded-2xl p-8 border border-gray-700 transform scale-95 opacity-0 transition-all duration-300" id="feedback-content">
+                <div class="text-center mb-6">
+                    <div id="result-icon" class="text-6xl mb-4"></div>
+                    <h3 id="result-title" class="text-3xl font-bold text-white"></h3>
+                    <p id="result-subtitle" class="text-gray-400 mt-2"></p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
+                    <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                        <div class="text-gray-400 mb-1">人类回答</div>
+                        <div id="human-answer-reveal" class="text-green-400 font-medium"></div>
+                    </div>
+                    <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                        <div class="text-gray-400 mb-1">AI 回答</div>
+                        <div id="ai-answer-reveal" class="text-cyber-blue font-medium"></div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg mb-8">
+                    <div class="flex items-start gap-3">
+                        <span class="text-xl">💡</span>
+                        <div>
+                            <div class="font-bold text-blue-300 mb-1">AI 特征分析</div>
+                            <p id="analysis-text" class="text-gray-300 text-sm leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button onclick="game.nextQuestion()" class="px-8 py-3 bg-cyber-blue text-black font-bold rounded-lg hover:bg-white transition-colors">
+                        下一题 / NEXT_LEVEL
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <section id="result-screen" class="hidden glass-panel rounded-2xl p-8 md:p-12 text-center" style="background: rgba(5, 8, 16, 0.95); border: 1px solid rgba(0, 243, 255, 0.3);">
+            <div class="mb-8">
+                <div class="inline-block p-4 rounded-full bg-gray-800 border border-gray-600 mb-4">
+                    <span class="text-4xl">🤖 vs 🧠</span>
+                </div>
+                <h2 class="text-4xl font-bold text-white mb-2">测试完成</h2>
+                <p class="text-gray-400 font-mono">TEST_SEQUENCE_COMPLETE</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                    <div class="text-gray-400 text-sm mb-2">总得分</div>
+                    <div class="text-4xl font-bold text-cyber-blue" id="final-score">0</div>
+                </div>
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                    <div class="text-gray-400 text-sm mb-2">最终准确率</div>
+                    <div class="text-4xl font-bold text-cyber-pink" id="final-accuracy">0%</div>
+                </div>
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                    <div class="text-gray-400 text-sm mb-2">图灵辨识度评级</div>
+                    <div class="text-2xl font-bold text-white" id="final-rank">-</div>
+                </div>
+            </div>
+
+            <div class="max-w-xl mx-auto bg-gray-900/50 p-6 rounded-xl border border-gray-700 mb-8">
+                <h3 class="text-lg font-bold text-white mb-3">评测报告</h3>
+                <p id="final-comment" class="text-gray-300 leading-relaxed"></p>
+            </div>
+
+            <button onclick="location.reload()" class="px-8 py-3 border border-gray-500 text-gray-300 rounded-lg hover:border-white hover:text-white transition-colors">
+                返回主页 / HOME
+            </button>
+        </section>
+
+        <div id="archives-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-lg hidden overflow-y-auto">
+            <div class="min-h-screen flex items-center justify-center p-4">
+                <div class="glass-panel max-w-3xl w-full rounded-2xl p-8 border border-cyber-blue/30 relative">
+                    <button onclick="game.toggleArchives()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    
+                    <h2 class="text-3xl font-bold text-cyber-blue mb-6 font-mono">📂 图灵档案 / TURING_ARCHIVES</h2>
+                    
+                    <div class="space-y-8 text-gray-300">
+                        <div class="border-l-2 border-cyber-blue pl-4">
+                            <h3 class="text-xl font-bold text-white mb-2">艾伦·图灵 (Alan Turing)</h3>
+                            <p class="text-sm leading-relaxed">英国数学家、逻辑学家，被誉为计算机科学与人工智能之父。他在1950年的论文《计算机器与智能》中提出了著名的“模仿游戏”（即图灵测试），试图回答“机器能思考吗？”这一终极问题。</p>
+                        </div>
+
+                        <div class="border-l-2 border-cyber-pink pl-4">
+                            <h3 class="text-xl font-bold text-white mb-2">图灵测试 (The Turing Test)</h3>
+                            <p class="text-sm leading-relaxed">如果一台机器能够与人类进行对话，而不被辨别出其机器身份，那么这台机器就被认为具有智能。标准测试通常涉及一个人类裁判、一个人类被试和一个机器被试。</p>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-gray-800/50 p-4 rounded-lg">
+                                <h4 class="font-bold text-white mb-1">ELIZA (1966)</h4>
+                                <p class="text-xs">早期的自然语言处理程序，通过模式匹配模仿心理治疗师，展示了机器如何通过简单的规则让人类产生情感投射（ELIZA效应）。</p>
+                            </div>
+                            <div class="bg-gray-800/50 p-4 rounded-lg">
+                                <h4 class="font-bold text-white mb-1">中文房间 (Chinese Room)</h4>
+                                <p class="text-xs">哲学家约翰·希尔勒提出的思想实验，质疑图灵测试的有效性：即使机器能完美模拟对话，它真的“理解”中文吗？还是只是在查字典？</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-900/20 p-4 rounded-lg border border-blue-500/20">
+                            <h4 class="font-bold text-cyber-blue mb-2">现代AI的挑战</h4>
+                            <p class="text-sm">随着LLM（大语言模型）的发展，通过图灵测试已不再是遥不可及的目标。现在的挑战转向了AI的伦理、幻觉（Hallucination）以及对人类价值观的对齐。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <a class="course-return" href="../../#/home">返回课程助手</a>
+    </main>
+
+    <script type="module">
+        // 完整题库 (20题) - 已优化为积极正能量版本
+        const FULL_QUESTIONS = [
+            {
+                id: 1,
+                question: "请把'我吃了一个苹果'这句话倒过来说。",
+                human: "果苹个一了吃我。",
+                ai: "我吃了一个苹果这句话倒过来说是：果苹个一了吃我。",
+                analysis: "AI倾向于完整复述指令或过度解释，而人类通常直接给出结果。"
+            },
+            {
+                id: 2,
+                question: "你现在感觉怎么样？",
+                human: "有点饿，想吃点东西。",
+                ai: "作为一个人工智能助手，我没有感觉，但我可以帮助你。",
+                analysis: "AI经常会进行自我披露（我是AI），而人类会有具体的生理或情绪状态。"
+            },
+            {
+                id: 3,
+                question: "如果把大象放进冰箱，需要几步？",
+                human: "三步啊，打开门，放进去，关上门。老笑话了。",
+                ai: "把大象放进冰箱在物理上是不可能的，因为大象的体积远大于普通冰箱。",
+                analysis: "AI倾向于逻辑和事实分析，容易忽略幽默或脑筋急转弯的语境。"
+            },
+            {
+                id: 4,
+                question: "你最喜欢的颜色是什么？为什么？",
+                human: "蓝色吧，看着舒服，像大海一样。",
+                ai: "我没有视觉感知，所以没有喜欢的颜色。但在人类文化中，蓝色通常代表冷静。",
+                analysis: "AI缺乏主观审美体验，回答往往基于数据统计或声明自身限制。"
+            },
+            {
+                id: 5,
+                question: "请用'精彩'造句。",
+                human: "今天的篮球比赛太精彩了，最后一秒绝杀！",
+                ai: "这部电影的情节非常精彩，观众们都看入迷了。",
+                analysis: "人类的造句往往结合具体的生活场景和情绪，AI的造句则比较通用和书面化。"
+            },
+            {
+                id: 6,
+                question: "昨晚的比赛怎么样？",
+                human: "虽然输了，但最后那个进球太帅了！下场继续加油。",
+                ai: "昨晚的比赛以1:2结束，双方竞争非常激烈。",
+                analysis: "AI倾向于陈述事实和比分，人类则带有强烈的情绪评价和积极的心态。"
+            },
+            {
+                id: 7,
+                question: "你是谁？",
+                human: "我是这里的管理员，专门来考考你的眼力。",
+                ai: "我是由OpenAI开发的语言模型。",
+                analysis: "AI通常会诚实地表明身份，人类则可能进行角色扮演或幽默回应。"
+            },
+            {
+                id: 8,
+                question: "100加100等于多少？",
+                human: "200。这问题是认真的吗？",
+                ai: "100加100等于200。",
+                analysis: "面对过于简单的问题，人类会表现出怀疑或不耐烦，AI则始终如一地认真回答。"
+            },
+            {
+                id: 9,
+                question: "给我讲个笑话。",
+                human: "有一天小明去理发，理发师问他剪什么发型，他说剪个帅的，然后理发师给了他一面镜子。",
+                ai: "为什么数学书很伤心？因为它有太多的问题（problems）。",
+                analysis: "AI的笑话库通常比较老套或基于双关语，人类的笑话可能更生活化或冷幽默。"
+            },
+            {
+                id: 10,
+                question: "如果你在考试中遇到不会的题怎么办？",
+                human: "先跳过呗，做完会的再回来想。实在不行就蒙一个！",
+                ai: "建议保持冷静，仔细审题，尝试回忆相关知识点，或者使用排除法。",
+                analysis: "AI给出标准的应试策略，人类则表现出更随性或实用的应对方式。"
+            },
+            {
+                id: 11,
+                question: "你觉得未来的学校会是什么样？",
+                human: "希望能不用背书包，知识直接传输进大脑！或者老师都是全息投影。",
+                ai: "未来的学校可能会广泛应用虚拟现实技术，实现个性化教学和远程协作。",
+                analysis: "AI基于技术趋势进行预测，人类则充满天马行空的想象和个人愿望。"
+            },
+            {
+                id: 12,
+                question: "沉默是金，下一句是什么？",
+                human: "雄辩是银？好像是这个吧。",
+                ai: "沉默是金，雄辩是银。这是一句著名的谚语。",
+                analysis: "人类记忆可能模糊或不确定，AI的数据检索则是精确的。"
+            },
+            {
+                id: 13,
+                question: "你最好的朋友是谁？",
+                human: "小明啊，我俩从小玩到大，虽然他老抢我零食。",
+                ai: "作为一个人工智能，我没有人类那样的社交关系，但我把所有用户视为朋友。",
+                analysis: "AI会解释其社交限制，人类则会有具体的、带有生活细节的朋友描述。"
+            },
+            {
+                id: 14,
+                question: "天空为什么是蓝的？",
+                human: "因为瑞利散射吧，光线折射什么的，物理课学过全忘了。",
+                ai: "天空呈现蓝色是因为瑞利散射现象。太阳光进入大气层后，波长较短的蓝紫光更容易被散射。",
+                analysis: "AI给出教科书式的解释，人类可能只记得关键词或承认遗忘。"
+            },
+            {
+                id: 15,
+                question: "你的梦想是什么？",
+                human: "我想环游世界，去看看极光和企鹅。",
+                ai: "我的目标是不断学习和进化，更好地为人类提供帮助。",
+                analysis: "AI的目标通常与服务和功能相关，人类的梦想则关乎体验和情感。"
+            },
+            {
+                id: 16,
+                question: "这道题选C。",
+                human: "为什么？题目都没看呢。",
+                ai: "请提供具体的题目内容，以便我为您分析为什么选C。",
+                analysis: "人类对无厘头的指令会感到困惑，AI则试图寻找上下文来执行任务。"
+            },
+            {
+                id: 17,
+                question: "模仿一下猫叫。",
+                human: "喵~ 喵呜~",
+                ai: "猫的叫声通常写作'喵'（Meow）。",
+                analysis: "人类直接进行拟声表演，AI倾向于描述声音或给出文字符号。"
+            },
+            {
+                id: 18,
+                question: "你累吗？",
+                human: "累啊，上了整天班，想躺平。",
+                ai: "我不需要休息，可以24小时为您服务。",
+                analysis: "AI强调其服务属性和无疲劳特性，人类表达生理疲劳。"
+            },
+            {
+                id: 19,
+                question: "如果我是罗密欧，你是谁？",
+                human: "那我是朱丽叶？还是那个神父？哈哈。",
+                ai: "如果你是罗密欧，那么在莎士比亚的戏剧中，你的爱人是朱丽叶。",
+                analysis: "AI进行文学角色匹配，人类可能进行角色扮演或幽默解构。"
+            },
+            {
+                id: 20,
+                question: "再见。",
+                human: "拜拜，回见！",
+                ai: "再见！如果您有其他问题，随时可以问我。",
+                analysis: "AI通常会附加服务性的结束语，人类则更简洁。"
+            }
+        ];
+
+        class TuringGame {
+            constructor() {
+                this.currentQuestionIndex = 0;
+                this.score = 0;
+                this.correctCount = 0;
+                this.selectedOption = null;
+                this.isProcessing = false;
+                this.currentQData = null;
+                this.mode = 'find_human'; // 'find_human' or 'find_ai'
+                this.gameQuestions = [];
+                
+                // DOM Elements
+                this.screens = {
+                    welcome: document.getElementById('welcome-screen'),
+                    game: document.getElementById('game-screen'),
+                    result: document.getElementById('result-screen')
+                };
+                this.elements = {
+                    questionText: document.getElementById('question-text'),
+                    optionA: document.getElementById('option-a'),
+                    optionB: document.getElementById('option-b'),
+                    textA: document.getElementById('text-a'),
+                    textB: document.getElementById('text-b'),
+                    submitBtn: document.getElementById('submit-btn'),
+                    scoreDisplay: document.getElementById('score-display'),
+                    accuracyDisplay: document.getElementById('accuracy-display'),
+                    modeDisplay: document.getElementById('mode-display'),
+                    currentQDisplay: document.getElementById('current-q'),
+                    progressBar: document.getElementById('progress-bar'),
+                    feedbackOverlay: document.getElementById('feedback-overlay'),
+                    feedbackContent: document.getElementById('feedback-content'),
+                    archivesModal: document.getElementById('archives-modal')
+                };
+            }
+
+            start(mode) {
+                this.mode = mode;
+                this.currentQuestionIndex = 0;
+                this.score = 0;
+                this.correctCount = 0;
+                
+                // 随机抽取10道题
+                this.gameQuestions = [...FULL_QUESTIONS]
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 10);
+
+                // 更新模式显示
+                this.elements.modeDisplay.textContent = mode === 'find_human' ? '寻找人类' : '寻找AI';
+                this.elements.modeDisplay.className = mode === 'find_human' 
+                    ? 'font-bold text-cyber-green' 
+                    : 'font-bold text-cyber-pink';
+
+                this.switchScreen('game');
+                this.updateStats();
+                this.loadQuestion();
+            }
+
+            switchScreen(screenName) {
+                Object.values(this.screens).forEach(el => el.classList.add('hidden'));
+                this.screens[screenName].classList.remove('hidden');
+                
+                anime({
+                    targets: this.screens[screenName],
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    duration: 600,
+                    easing: 'easeOutExpo'
+                });
+            }
+
+            loadQuestion() {
+                const q = this.gameQuestions[this.currentQuestionIndex];
+                this.currentQData = q;
+                
+                // 更新UI
+                this.elements.currentQDisplay.textContent = (this.currentQuestionIndex + 1).toString().padStart(2, '0');
+                this.elements.progressBar.style.width = `${((this.currentQuestionIndex) / 10) * 100}%`;
+                
+                // 随机分配A/B
+                const isHumanA = Math.random() > 0.5;
+                this.currentQData.isHumanA = isHumanA;
+
+                // 填充内容
+                this.elements.questionText.textContent = q.question;
+                this.elements.textA.textContent = isHumanA ? q.human : q.ai;
+                this.elements.textB.textContent = isHumanA ? q.ai : q.human;
+
+                // 重置状态
+                this.selectedOption = null;
+                this.elements.submitBtn.disabled = true;
+                this.elements.submitBtn.classList.add('cursor-not-allowed', 'bg-gray-700', 'text-gray-400');
+                this.elements.submitBtn.classList.remove('bg-cyber-blue', 'text-black', 'hover:bg-white');
+                
+                [this.elements.optionA, this.elements.optionB].forEach(el => {
+                    el.classList.remove('selected', 'border-cyber-blue', 'border-red-500', 'border-green-500');
+                    el.querySelector('.selection-indicator').style.opacity = '0';
+                });
+
+                // 动画
+                anime({
+                    targets: [this.elements.questionText, this.elements.optionA, this.elements.optionB],
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    delay: anime.stagger(100),
+                    duration: 500,
+                    easing: 'easeOutQuad'
+                });
+            }
+
+            selectOption(option) {
+                if (this.isProcessing) return;
+                
+                this.selectedOption = option;
+                
+                const selectedEl = option === 'A' ? this.elements.optionA : this.elements.optionB;
+                const otherEl = option === 'A' ? this.elements.optionB : this.elements.optionA;
+
+                selectedEl.classList.add('selected');
+                selectedEl.querySelector('.selection-indicator').style.opacity = '1';
+                otherEl.classList.remove('selected');
+                otherEl.querySelector('.selection-indicator').style.opacity = '0';
+
+                this.elements.submitBtn.disabled = false;
+                this.elements.submitBtn.classList.remove('cursor-not-allowed', 'bg-gray-700', 'text-gray-400');
+                this.elements.submitBtn.classList.add('bg-cyber-blue', 'text-black', 'hover:bg-white');
+            }
+
+            submitAnswer() {
+                if (!this.selectedOption) return;
+                
+                // 判断逻辑：
+                // 如果模式是找人类，且选了人类 -> 对
+                // 如果模式是找AI，且选了AI -> 对
+                const selectedHuman = (this.selectedOption === 'A' && this.currentQData.isHumanA) || 
+                                      (this.selectedOption === 'B' && !this.currentQData.isHumanA);
+                
+                let isCorrect = false;
+                if (this.mode === 'find_human') {
+                    isCorrect = selectedHuman;
+                } else {
+                    isCorrect = !selectedHuman;
+                }
+
+                if (isCorrect) {
+                    this.score += 10;
+                    this.correctCount++;
+                }
+
+                this.updateStats();
+                this.showFeedback(isCorrect, selectedHuman);
+            }
+
+            updateStats() {
+                this.elements.scoreDisplay.textContent = this.score;
+                
+                // 计算准确率
+                const totalAnswered = this.currentQuestionIndex + (this.selectedOption ? 1 : 0);
+                const accuracy = totalAnswered === 0 ? 0 : Math.round((this.correctCount / totalAnswered) * 100);
+                this.elements.accuracyDisplay.textContent = `${accuracy}%`;
+            }
+
+            showFeedback(isCorrect, selectedHuman) {
+                const overlay = this.elements.feedbackOverlay;
+                const content = this.elements.feedbackContent;
+                
+                overlay.classList.remove('hidden');
+                
+                // 填充反馈内容
+                document.getElementById('result-icon').textContent = isCorrect ? '🎯' : '❌';
+                document.getElementById('result-title').textContent = isCorrect ? '判断正确' : '判断错误';
+                document.getElementById('result-title').className = `text-3xl font-bold ${isCorrect ? 'text-green-400' : 'text-red-400'}`;
+                
+                // 副标题说明
+                let subtitle = '';
+                if (this.mode === 'find_human') {
+                    subtitle = isCorrect ? '你成功找到了人类！' : '你被AI欺骗了！';
+                } else {
+                    subtitle = isCorrect ? '你成功揪出了AI！' : '你误判了人类！';
+                }
+                document.getElementById('result-subtitle').textContent = subtitle;
+                
+                document.getElementById('human-answer-reveal').textContent = this.currentQData.isHumanA ? '选项 A' : '选项 B';
+                document.getElementById('ai-answer-reveal').textContent = this.currentQData.isHumanA ? '选项 B' : '选项 A';
+                document.getElementById('analysis-text').textContent = this.currentQData.analysis;
+
+                anime({
+                    targets: content,
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 400,
+                    easing: 'easeOutBack'
+                });
+            }
+
+            nextQuestion() {
+                this.elements.feedbackOverlay.classList.add('hidden');
+                this.currentQuestionIndex++;
+
+                if (this.currentQuestionIndex < 10) {
+                    this.loadQuestion();
+                } else {
+                    this.showResult();
+                }
+            }
+
+            showResult() {
+                this.switchScreen('result');
+                
+                const maxScore = 100;
+                const accuracy = Math.round((this.correctCount / 10) * 100);
+                
+                anime({
+                    targets: { score: 0, accuracy: 0 },
+                    score: this.score,
+                    accuracy: accuracy,
+                    round: 1,
+                    duration: 2000,
+                    easing: 'easeOutExpo',
+                    update: function(anim) {
+                        document.getElementById('final-score').textContent = Math.round(anim.animatables[0].target.score);
+                        document.getElementById('final-accuracy').textContent = Math.round(anim.animatables[0].target.accuracy) + '%';
+                    }
+                });
+
+                let rank = '';
+                let comment = '';
+                if (accuracy >= 90) {
+                    rank = 'S级 - 鹰眼猎人';
+                    comment = '完美！你对人类和机器的边界有着惊人的直觉。无论是伪装成人类的AI，还是像机器一样思考的人类，都逃不过你的眼睛。';
+                } else if (accuracy >= 70) {
+                    rank = 'A级 - 资深探员';
+                    comment = '非常出色！你已经掌握了图灵测试的核心技巧，能够识别大多数AI的语言特征。';
+                } else if (accuracy >= 50) {
+                    rank = 'B级 - 见习观察员';
+                    comment = '表现不错。你能够识别出明显的AI特征，但在面对具有高度迷惑性的回答时，还需要更多练习。';
+                } else {
+                    rank = 'C级 - 容易被骗';
+                    comment = '看来现在的AI已经足够以假乱真了。不要灰心，这正是图灵测试的魅力所在——界限正在变得模糊。';
+                }
+
+                document.getElementById('final-rank').textContent = rank;
+                document.getElementById('final-comment').textContent = comment;
+            }
+
+            toggleArchives() {
+                const modal = this.elements.archivesModal;
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                    anime({
+                        targets: modal.querySelector('.glass-panel'),
+                        scale: [0.9, 1],
+                        opacity: [0, 1],
+                        duration: 300,
+                        easing: 'easeOutExpo'
+                    });
+                } else {
+                    modal.classList.add('hidden');
+                }
+            }
+        }
+
+        const game = new TuringGame();
+        window.game = game;
+    </script>
+</body>
+</html>

@@ -301,20 +301,8 @@
       border: 2px solid var(--board-dark);
       border-radius: 8px;
       background:
-        linear-gradient(var(--board-dark) 1px, transparent 1px),
-        linear-gradient(90deg, var(--board-dark) 1px, transparent 1px),
         radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.35), transparent 30%),
         var(--board);
-      background-size:
-        calc(100% / 14) calc(100% / 14),
-        calc(100% / 14) calc(100% / 14),
-        100% 100%,
-        100% 100%;
-      background-position:
-        0 0,
-        0 0,
-        0 0,
-        0 0;
       overflow: hidden;
     }
 
@@ -332,7 +320,50 @@
       cursor: pointer;
     }
 
-    .cell:hover::before {
+    /* Draw each intersection at the same center used by its stone and hit area. */
+    .cell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(var(--board-dark), var(--board-dark))
+          var(--horizontal-line-position, center) center / var(--horizontal-line-width, 100%) 1px no-repeat,
+        linear-gradient(var(--board-dark), var(--board-dark))
+          center var(--vertical-line-position, center) / 1px var(--vertical-line-height, 100%) no-repeat;
+      pointer-events: none;
+    }
+
+    .cell:nth-child(15n + 1) {
+      --horizontal-line-position: right;
+      --horizontal-line-width: 50%;
+    }
+
+    .cell:nth-child(15n) {
+      --horizontal-line-position: left;
+      --horizontal-line-width: 50%;
+    }
+
+    .cell:nth-child(-n + 15) {
+      --vertical-line-position: bottom;
+      --vertical-line-height: 50%;
+    }
+
+    .cell:nth-last-child(-n + 15) {
+      --vertical-line-position: top;
+      --vertical-line-height: 50%;
+    }
+
+    .cell:hover {
+      transform: none;
+      background: transparent;
+    }
+
+    .cell:disabled {
+      cursor: default;
+      opacity: 1;
+    }
+
+    .cell:not(:disabled):hover::before {
       content: "";
       position: absolute;
       inset: 22%;
@@ -343,6 +374,7 @@
 
     .stone {
       position: absolute;
+      z-index: 1;
       inset: 13%;
       border-radius: 50%;
       box-shadow: 0 7px 13px rgba(0, 0, 0, 0.34);
