@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 时光机 - 探索人工智能的进化之旅</title>
+    <link rel="stylesheet" href="time-machine-utilities.css" />
+    <script src="../图灵测试/anime-3.2.1.js"></script>
+    <style>
+        body {
+            background-color: #050510;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(76, 29, 149, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 30%);
+            overflow-x: hidden;
+        }
+        
+        .timeline-line {
+            background: linear-gradient(90deg, 
+                rgba(0, 240, 255, 0) 0%, 
+                rgba(0, 240, 255, 0.5) 15%, 
+                rgba(0, 240, 255, 0.5) 85%, 
+                rgba(0, 240, 255, 0) 100%);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+
+        .node-glow {
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+        }
+
+        .glass-panel {
+            background: rgba(13, 18, 48, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 240, 255, 0.3);
+            border-radius: 3px;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .dot-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        body { overflow-y: auto; }
+        #app {
+            min-height: 100svh;
+            padding: 32px 0 104px;
+            gap: 28px;
+        }
+        #app > header {
+            position: relative;
+            inset: auto;
+            padding: 0 20px;
+        }
+        #timeline-scroll {
+            height: clamp(240px, 42vh, 360px);
+            flex-shrink: 0;
+        }
+        .timeline-line { display: none; }
+        #nodes-container::before {
+            content: "";
+            position: absolute;
+            top: 32px;
+            left: 80px;
+            right: 80px;
+            height: 2px;
+            background: rgba(0, 240, 255, 0.4);
+            pointer-events: none;
+        }
+        .timeline-node { min-width: 100px; font: inherit; }
+        .timeline-node:focus-visible { outline: 2px solid #00f0ff; outline-offset: 6px; }
+        .course-return {
+            display: inline-block;
+            margin-top: 16px;
+            color: #a8cbd6;
+            font-size: 13px;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+        #close-modal { z-index: 2; }
+        @media (min-width: 768px) {
+            #nodes-container::before { top: 40px; }
+        }
+        @media (max-width: 767px) {
+            #modal-content { height: 90svh; overflow-y: auto; }
+            #modal-content > div { flex: 0 0 auto; }
+            #modal-content > div:first-child { padding: 20px; }
+            #modal-content > div:first-child > .relative { max-width: 160px; margin-bottom: 16px; }
+            #modal-content > div:last-child { padding: 24px; overflow-y: visible; }
+            #badge-modal { padding: 24px; overflow-y: auto; }
+            #badge-modal > .relative { margin: auto; padding: 0; }
+            #badge-modal > .relative > .relative { width: 160px; height: 160px; margin-bottom: 24px; }
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col overflow-hidden">
+
+    <div id="loading" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-space">
+        <div class="w-24 h-24 border-4 border-cyber border-t-transparent rounded-full animate-spin mb-4"></div>
+        <h2 class="text-2xl font-bold text-cyber tracking-widest">时光机启动中...</h2>
+    </div>
+
+    <main class="flex-1 relative flex flex-col items-center justify-center opacity-0 transition-opacity duration-1000" id="app">
+        
+        <div id="stars-container" class="absolute inset-0 pointer-events-none"></div>
+
+        <header class="absolute top-8 left-0 right-0 text-center z-10">
+            <h1 class="text-4xl md:text-6xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyber to-neon filter drop-shadow-lg">
+                AI 时光机
+            </h1>
+            <p class="text-gray-400 text-sm md:text-base">探索人工智能 75 年的进化史诗</p>
+            <div class="mt-4 flex justify-center gap-4 text-sm">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-gray-600"></span> 未探索
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-cyber shadow-[0_0_10px_#00F0FF]"></span> 已完成
+                </div>
+            </div>
+            
+            <a href="https://www.doubao.com/chat/" target="_blank" class="inline-flex items-center gap-2 mt-6 px-6 py-2 rounded-full border border-cyber text-cyber hover:bg-cyber hover:text-space transition-all duration-300 font-bold tracking-wider shadow-[0_0_10px_rgba(0,240,255,0.2)] hover:shadow-[0_0_20px_rgba(0,240,255,0.6)]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                AI工具搜索
+            </a>
+        </header>
+
+        <div class="w-full max-w-7xl px-4 md:px-12 relative h-[60vh] flex items-center overflow-x-auto custom-scrollbar snap-x snap-mandatory" id="timeline-scroll">
+            <div class="absolute left-12 right-12 top-1/2 h-1 timeline-line transform -translate-y-1/2 z-0"></div>
+
+            <div class="flex justify-between items-center w-full min-w-[1000px] px-12 relative z-10" id="nodes-container">
+                </div>
+        </div>
+
+        <div class="absolute bottom-8 left-0 right-0 text-center">
+            <p class="text-cyber mb-2">探索进度: <span id="progress-text">0/6</span></p>
+            <div class="w-64 h-2 bg-gray-800 rounded-full mx-auto overflow-hidden">
+                <div id="progress-bar" class="h-full bg-gradient-to-r from-cyber to-neon w-0 transition-all duration-500"></div>
+            </div>
+            <a class="course-return" href="../../#/home">返回课程助手</a>
+        </div>
+
+    </main>
+
+    <div id="modal" class="fixed inset-0 z-40 hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" id="modal-backdrop"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="glass-panel w-full max-w-5xl h-[85vh] rounded-3xl overflow-hidden flex flex-col md:flex-row transform scale-95 opacity-0 transition-all duration-500" id="modal-content">
+                
+                <div class="w-full md:w-1/2 bg-gradient-to-b from-gray-900 to-space p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 dot-pattern opacity-20"></div>
+                    
+                    <div class="relative w-full max-w-md aspect-square mb-6">
+                        <div class="absolute inset-0 bg-cyber/20 rounded-full blur-3xl animate-pulse-slow"></div>
+                        <img id="modal-img" alt="历史事件插图" class="relative w-full h-full object-contain drop-shadow-2xl animate-float">
+                    </div>
+
+                    <div class="w-full max-w-xs bg-white/10 rounded-full p-2 flex items-center gap-3 backdrop-blur-md border border-white/10">
+                        <button id="play-btn" aria-label="播放解说" class="w-10 h-10 rounded-full bg-cyber text-space flex items-center justify-center hover:bg-white transition-colors">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </button>
+                        <div class="flex-1">
+                            <div class="text-xs text-cyber mb-1">AI 解说</div>
+                            <div class="h-1 bg-white/20 rounded-full overflow-hidden">
+                                <div id="audio-progress" class="h-full bg-cyber w-0"></div>
+                            </div>
+                        </div>
+                        <audio id="modal-audio"></audio>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-1/2 p-8 md:p-10 overflow-y-auto custom-scrollbar flex flex-col">
+                    <div class="flex items-baseline gap-4 mb-2">
+                        <h2 id="modal-year" class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyber to-neon">1950</h2>
+                        <span class="text-gray-400 text-lg">里程碑</span>
+                    </div>
+                    <h3 id="modal-title" class="text-2xl font-bold text-white mb-6"></h3>
+                    
+                    <div class="space-y-6 flex-1">
+                        <div class="bg-white/5 rounded-xl p-6 border-l-4 border-cyber">
+                            <h4 class="text-cyber text-sm font-bold uppercase tracking-wider mb-2">历史时刻</h4>
+                            <p id="modal-desc" class="text-gray-300 leading-relaxed"></p>
+                        </div>
+
+                        <div class="bg-white/5 rounded-xl p-6 border-l-4 border-neon">
+                            <h4 class="text-neon text-sm font-bold uppercase tracking-wider mb-2">深远影响</h4>
+                            <p id="modal-impact" class="text-gray-300 leading-relaxed"></p>
+                        </div>
+
+                        <div id="quiz-section" class="mt-8 pt-8 border-t border-white/10">
+                            <h4 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                                <span class="text-2xl">🧩</span> 知识挑战
+                            </h4>
+                            <p id="quiz-question" class="text-gray-200 mb-4 font-medium"></p>
+                            <div id="quiz-options" class="grid gap-3">
+                                </div>
+                            <div id="quiz-feedback" class="mt-4 hidden p-3 rounded-lg text-center font-bold"></div>
+                        </div>
+                    </div>
+
+                    <button id="close-modal" aria-label="关闭详情" class="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="badge-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-md"></div>
+        <div class="relative z-10 flex flex-col items-center text-center p-8 animate-float">
+            <div class="relative w-64 h-64 mb-8">
+                <div class="absolute inset-0 bg-yellow-500/30 rounded-full blur-[60px] animate-pulse"></div>
+                <img src="assets/turing-badge.webp" alt="图灵徽章" class="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(255,215,0,0.6)]">
+            </div>
+            <h2 class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 mb-4">恭喜解锁图灵徽章！</h2>
+            <p class="text-xl text-gray-300 max-w-lg">你已成功穿越 AI 的过去与未来，见证了从图灵测试到多模态智能的伟大进化。</p>
+            <button onclick="location.reload()" class="mt-10 px-8 py-3 bg-gradient-to-r from-yellow-500 to-yellow-700 rounded-full text-white font-bold shadow-lg hover:scale-105 transition-transform">
+                再次穿越
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Data
+        const timelineData = [
+            {
+                year: 1950,
+                title: "图灵测试提出",
+                desc: "艾伦·图灵发表论文《计算机器与智能》，提出了著名的'模仿游戏'。如果一台机器在对话中能让30%的人类裁判误以为它是人，就算通过测试。这是AI概念的哲学起点。",
+                impact: "确立了衡量机器智能的标准，将'机器能否思考'这一抽象哲学问题转化为可操作的实验，为后世AI研究指明了方向。",
+                image: "assets/milestone-1950.webp",
+                audio: "assets/narration-1950.mp3",
+                quiz: {
+                    question: "图灵测试的核心判定标准是什么？",
+                    options: ["机器能通过复杂的数学计算", "机器能欺骗人类裁判误以为它是人", "机器能识别图像中的物体", "机器能战胜国际象棋冠军"],
+                    correct: 1
+                }
+            },
+            {
+                year: 1956,
+                title: "达特茅斯会议",
+                desc: "约翰·麦卡锡、马文·明斯基等科学家在达特茅斯学院举行了一次为期两个月的研讨会，首次正式提出了'Artificial Intelligence'（人工智能）这一术语。",
+                impact: "标志着人工智能作为一门独立的学科正式诞生，确立了符号主义等早期研究范式，开启了AI研究的第一个黄金时代。",
+                image: "assets/milestone-1956.webp",
+                audio: "assets/narration-1956.mp3",
+                quiz: {
+                    question: "谁首次提出了'人工智能'这个词？",
+                    options: ["艾伦·图灵", "约翰·麦卡锡", "埃隆·马斯克", "冯·诺依曼"],
+                    correct: 1
+                }
+            },
+            {
+                year: 1997,
+                title: "深蓝战胜人类冠军",
+                desc: "IBM的超级计算机'深蓝'（Deep Blue）以3.5比2.5的总比分击败了当时的国际象棋世界冠军加里·卡斯帕罗夫。",
+                impact: "证明了计算机在逻辑明确、规则完备的智力游戏中可以超越人类顶尖水平，极大地提振了AI研究的信心。",
+                image: "assets/milestone-1997.webp",
+                audio: "assets/narration-1997.mp3",
+                quiz: {
+                    question: "深蓝击败的是哪种棋类的世界冠军？",
+                    options: ["围棋", "中国象棋", "国际象棋", "跳棋"],
+                    correct: 2
+                }
+            },
+            {
+                year: 2016,
+                title: "AlphaGo 世纪对决",
+                desc: "Google DeepMind开发的AlphaGo在围棋人机大战中以4:1击败世界冠军李世石。其中第37手被认为是AI展现创造力的一手。",
+                impact: "攻克了被认为是人类智慧堡垒的围棋，展示了深度学习和强化学习的巨大潜力，引发了全球范围内的AI热潮。",
+                image: "assets/milestone-2016.webp",
+                audio: "assets/narration-2016.mp3",
+                quiz: {
+                    question: "AlphaGo主要使用了什么技术？",
+                    options: ["专家系统", "深度学习与强化学习", "暴力穷举", "模糊逻辑"],
+                    correct: 1
+                }
+            },
+            {
+                year: 2022,
+                title: "ChatGPT 发布",
+                desc: "OpenAI发布了基于GPT-3.5的聊天机器人ChatGPT，它能进行流畅的对话、写作、编程，展现了惊人的通用语言能力。",
+                impact: "开启了生成式AI（AIGC）时代，让AI从'识别'走向'创造'，并迅速渗透到普通人的工作和生活中。",
+                image: "assets/milestone-2022.webp",
+                audio: "assets/narration-2022.mp3",
+                quiz: {
+                    question: "ChatGPT属于哪一类AI？",
+                    options: ["判别式AI", "生成式AI", "符号主义AI", "行为主义AI"],
+                    correct: 1
+                }
+            },
+            {
+                year: 2025,
+                title: "多模态 AI 时代",
+                desc: "AI不再局限于单一的文本或图像，而是能像人类一样同时处理视觉、听觉、语言等多种信息，成为真正的全能助手。",
+                impact: "打破了感官界限，使AI能更自然地感知物理世界，为具身智能（机器人）和更高级的AGI奠定了基础。",
+                image: "assets/milestone-2025.webp",
+                audio: "assets/narration-2025.mp3",
+                quiz: {
+                    question: "多模态AI的特点是什么？",
+                    options: ["只能处理文本", "只能处理图像", "能同时处理多种感官信息", "不需要电力"],
+                    correct: 2
+                }
+            }
+        ];
+
+        // State
+        let unlockedNodes = new Set();
+        let currentAudio = null;
+
+        // Init
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('app').style.opacity = '1';
+                initStars();
+                renderTimeline();
+                animateEntrance();
+            }, 1500);
+        });
+
+        function initStars() {
+            const container = document.getElementById('stars-container');
+            for(let i=0; i<100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.opacity = Math.random();
+                star.style.animation = `pulse ${2 + Math.random() * 3}s infinite`;
+                container.appendChild(star);
+            }
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('nodes-container');
+            timelineData.forEach((item, index) => {
+                const node = document.createElement('button');
+                node.type = 'button';
+                node.className = 'timeline-node relative group cursor-pointer flex flex-col items-center transition-transform duration-300 hover:scale-110';
+                node.setAttribute('aria-label', `${item.year} 年，${item.title}`);
+                node.onclick = () => openModal(index);
+                
+                node.innerHTML = `
+                    <div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-space border-2 border-cyber flex items-center justify-center relative z-10 overflow-hidden shadow-[0_0_15px_rgba(0,240,255,0.3)] group-hover:shadow-[0_0_25px_rgba(0,240,255,0.8)] transition-all duration-300" id="node-${index}">
+                        <img src="${item.image}" alt="" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
+                        <div class="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors"></div>
+                        ${unlockedNodes.has(index) ? '<div class="absolute inset-0 border-4 border-neon rounded-full"></div>' : ''}
+                    </div>
+                    <div class="mt-4 text-center">
+                        <div class="text-2xl font-bold text-cyber font-mono">${item.year}</div>
+                        <div class="text-xs text-gray-400 max-w-[100px] truncate">${item.title}</div>
+                    </div>
+                    <div class="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity text-neon text-xs font-bold tracking-widest">
+                        点击探索
+                    </div>
+                `;
+                container.appendChild(node);
+            });
+        }
+
+        function animateEntrance() {
+            anime({
+                targets: '#nodes-container > button',
+                translateY: [50, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(200),
+                easing: 'easeOutElastic(1, .6)'
+            });
+        }
+
+        // Modal Logic
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+        const audioEl = document.getElementById('modal-audio');
+        const playBtn = document.getElementById('play-btn');
+        let currentIdx = 0;
+
+        window.openModal = (index) => {
+            currentIdx = index;
+            const data = timelineData[index];
+            
+            // Populate Data
+            document.getElementById('modal-img').src = data.image;
+            document.getElementById('modal-img').alt = data.title;
+            document.getElementById('modal-year').textContent = data.year;
+            document.getElementById('modal-title').textContent = data.title;
+            document.getElementById('modal-desc').textContent = data.desc;
+            document.getElementById('modal-impact').textContent = data.impact;
+            audioEl.src = data.audio;
+            
+            // Reset Audio UI
+            playBtn.innerHTML = '<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+            playBtn.setAttribute('aria-label', '播放解说');
+            document.getElementById('audio-progress').style.width = '0%';
+
+            // Setup Quiz
+            setupQuiz(data.quiz, index);
+
+            // Show Modal
+            modal.classList.remove('hidden');
+            modalContent.scrollTop = 0;
+            document.getElementById('close-modal').focus({ preventScroll: true });
+            anime({
+                targets: modalContent,
+                scale: [0.9, 1],
+                opacity: [0, 1],
+                duration: 400,
+                easing: 'easeOutQuad'
+            });
+        };
+
+        function closeModal() {
+            audioEl.pause();
+            modal.classList.add('hidden');
+            document.querySelectorAll('.timeline-node')[currentIdx].focus({ preventScroll: true });
+            checkAllUnlocked();
+        }
+        document.getElementById('close-modal').onclick = closeModal;
+        document.getElementById('modal-backdrop').onclick = closeModal;
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+            if (event.key === 'Tab' && !modal.classList.contains('hidden')) {
+                const controls = [...modal.querySelectorAll('button:not(:disabled), a[href]')];
+                const first = controls[0];
+                const last = controls[controls.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        });
+
+        // Audio Controls
+        playBtn.onclick = () => {
+            if (audioEl.paused) {
+                audioEl.play().catch(() => {
+                    playBtn.setAttribute('aria-label', '重试播放解说');
+                    playBtn.innerHTML = '<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+                });
+                playBtn.setAttribute('aria-label', '暂停解说');
+                playBtn.innerHTML = '<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+            } else {
+                audioEl.pause();
+                playBtn.setAttribute('aria-label', '播放解说');
+                playBtn.innerHTML = '<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+            }
+        };
+
+        audioEl.ontimeupdate = () => {
+            const percent = Number.isFinite(audioEl.duration) && audioEl.duration > 0 ? (audioEl.currentTime / audioEl.duration) * 100 : 0;
+            document.getElementById('audio-progress').style.width = percent + '%';
+        };
+
+        audioEl.onended = () => {
+            playBtn.setAttribute('aria-label', '播放解说');
+            playBtn.innerHTML = '<svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+        };
+
+        // Quiz Logic
+        function setupQuiz(quiz, index) {
+            const container = document.getElementById('quiz-options');
+            const feedback = document.getElementById('quiz-feedback');
+            const questionEl = document.getElementById('quiz-question');
+            
+            questionEl.textContent = quiz.question;
+            container.innerHTML = '';
+            feedback.className = 'mt-4 hidden p-3 rounded-lg text-center font-bold';
+            
+            // Check if already answered correctly
+            if (unlockedNodes.has(index)) {
+                feedback.textContent = "✅ 已完成挑战";
+                feedback.className = "mt-4 block p-3 rounded-lg text-center font-bold bg-green-500/20 text-green-400 border border-green-500/50";
+                // Show options but disabled
+                quiz.options.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = `w-full p-3 rounded-lg text-left transition-all ${i === quiz.correct ? 'bg-green-500/20 border border-green-500 text-green-300' : 'bg-white/5 text-gray-500'}`;
+                    btn.textContent = opt;
+                    btn.disabled = true;
+                    container.appendChild(btn);
+                });
+                return;
+            }
+
+            quiz.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-3 rounded-lg bg-white/5 hover:bg-cyber/20 border border-transparent hover:border-cyber text-left transition-all text-gray-300 hover:text-white";
+                btn.textContent = opt;
+                btn.onclick = () => {
+                    if (i === quiz.correct) {
+                        // Correct
+                        btn.className = "w-full p-3 rounded-lg bg-green-500/20 border border-green-500 text-green-300 text-left";
+                        feedback.textContent = "🎉 回答正确！节点已点亮";
+                        feedback.classList.remove('hidden');
+                        feedback.classList.remove('bg-red-500/20', 'text-red-400');
+                        feedback.classList.add('bg-green-500/20', 'text-green-400', 'border', 'border-green-500/50');
+                        
+                        // Unlock Node
+                        if (!unlockedNodes.has(index)) {
+                            unlockedNodes.add(index);
+                            updateProgress();
+                            // Update node visual
+                            const nodeEl = document.getElementById(`node-${index}`);
+                            nodeEl.innerHTML += '<div class="absolute inset-0 border-4 border-neon rounded-full animate-ping"></div>';
+                            setTimeout(() => {
+                                nodeEl.innerHTML = nodeEl.innerHTML.replace('animate-ping', '');
+                            }, 1000);
+                        }
+                        
+                        // Disable all buttons
+                        Array.from(container.children).forEach(b => b.disabled = true);
+                    } else {
+                        // Wrong
+                        btn.className = "w-full p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-left animate-shake";
+                        feedback.textContent = "❌ 再试一次";
+                        feedback.classList.remove('bg-green-500/20', 'text-green-400', 'border', 'border-green-500/50');
+                        feedback.classList.remove('hidden');
+                        feedback.classList.add('bg-red-500/20', 'text-red-400');
+                        setTimeout(() => btn.classList.remove('animate-shake'), 500);
+                    }
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function updateProgress() {
+            const count = unlockedNodes.size;
+            const total = timelineData.length;
+            document.getElementById('progress-text').textContent = `${count}/${total}`;
+            document.getElementById('progress-bar').style.width = `${(count/total)*100}%`;
+        }
+
+        function checkAllUnlocked() {
+            if (unlockedNodes.size === timelineData.length) {
+                setTimeout(() => {
+                    document.getElementById('badge-modal').classList.remove('hidden');
+                    confettiEffect();
+                }, 500);
+            }
+        }
+
+        function confettiEffect() {
+            // Simple confetti using anime.js
+            const colors = ['#FFD700', '#4DFF4D', '#00F0FF', '#FF2E26'];
+            for (let i = 0; i < 50; i++) {
+                const el = document.createElement('div');
+                el.style.position = 'fixed';
+                el.style.left = '50%';
+                el.style.top = '50%';
+                el.style.width = '10px';
+                el.style.height = '10px';
+                el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                el.style.zIndex = '100';
+                document.body.appendChild(el);
+                
+                anime({
+                    targets: el,
+                    translateX: () => anime.random(-500, 500),
+                    translateY: () => anime.random(-500, 500),
+                    scale: [1, 0],
+                    opacity: [1, 0],
+                    duration: 2000,
+                    easing: 'easeOutExpo',
+                    complete: () => el.remove()
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -766,6 +766,31 @@ a {
   color: #76e7ff;
 }
 
+.home-time-machine {
+  border-color: #22645e;
+  background:
+    linear-gradient(90deg, rgba(5, 23, 34, 0.99), rgba(5, 35, 43, 0.95) 48%, rgba(5, 38, 45, 0.78)),
+    url("素材/AI时光机/assets/milestone-2025.webp") center 42% / cover no-repeat,
+    #06232d;
+}
+
+.home-time-machine::before {
+  background: linear-gradient(90deg, transparent, #72f0cf 48%, transparent);
+}
+
+.home-time-machine:hover {
+  border-color: #60d6b7;
+  box-shadow: 0 8px 24px rgba(10, 90, 76, 0.2);
+}
+
+.home-time-machine:focus-visible {
+  outline-color: #17836f;
+}
+
+.home-time-machine .quick-arrow {
+  color: #9bf4dc;
+}
+
 .ai-tool-links {
   display: grid;
   grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1.22fr);

@@ -257,6 +257,10 @@ function renderHome() {
 
 function renderHomeExperiment() {
   return `
+    <a class="home-experiment home-time-machine" href="素材/AI时光机/AI时光机.html" target="_blank" rel="noreferrer" aria-labelledby="time-machine-title">
+      <h2 id="time-machine-title">AI 时光机</h2>
+      <span class="quick-arrow" aria-hidden="true">→</span>
+    </a>
     <a class="home-experiment" href="素材/图灵测试/图灵测试.html" target="_blank" rel="noreferrer" aria-labelledby="experiment-title">
       <h2 id="experiment-title">图灵测试</h2>
       <span class="quick-arrow" aria-hidden="true">→</span>
