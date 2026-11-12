@@ -718,38 +718,52 @@ a {
 }
 
 .home-experiment {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   min-height: 88px;
   padding: 20px 26px;
-  border: 1px solid #327ede;
+  border: 1px solid #20536e;
   border-radius: var(--radius);
-  background: linear-gradient(110deg, #174bc8 0%, #1673d8 55%, #087fa8 100%);
-  box-shadow: 0 6px 18px rgba(23, 75, 200, 0.14);
+  background:
+    linear-gradient(90deg, rgba(6, 19, 38, 0.98), rgba(8, 29, 51, 0.92) 48%, rgba(8, 35, 58, 0.72)),
+    url("素材/图灵测试/background.png") center 46% / cover no-repeat,
+    #081b32;
+  box-shadow: 0 6px 18px rgba(6, 19, 38, 0.16);
+  overflow: hidden;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
+.home-experiment::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #34d9f5 48%, transparent);
+  pointer-events: none;
+}
+
 .home-experiment:hover {
-  border-color: #55b7ed;
-  box-shadow: 0 8px 24px rgba(23, 75, 200, 0.22);
+  border-color: #34c5e6;
+  box-shadow: 0 8px 24px rgba(10, 89, 119, 0.22);
 }
 
 .home-experiment:focus-visible {
-  outline: 3px solid var(--blue);
+  outline: 3px solid #159dc6;
   outline-offset: 4px;
 }
 
 .home-experiment h2 {
   margin: 0;
-  color: #fff;
+  color: #f4fbff;
   font-size: 24px;
   line-height: 1.3;
 }
 
 .home-experiment .quick-arrow {
-  color: #fff;
+  color: #76e7ff;
 }
 
 .ai-tool-links {
